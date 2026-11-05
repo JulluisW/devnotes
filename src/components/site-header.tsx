@@ -1,8 +1,8 @@
 // 📘 Day 1: No "use client" here, so this is a Server Component (the default).
 // It renders on the server and ships zero JS. It can still *render*
 // Client Components like <NavLink>. Server → Client is the normal direction.
-import Link from "next/link";
-import { NavLink } from "./nav-link";
+import Link from 'next/link';
+import { NavLink } from './nav-link';
 
 export function SiteHeader() {
   return (

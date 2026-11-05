@@ -38,7 +38,19 @@ Rules to memorize:
 Layouts **nest**: visiting `/posts/file-based-routing` renders
 `RootLayout → PostsLayout → PostPage`.
 
-🔬 **Observe it:** open any post, type in the *Scratchpad* (it lives in `posts/layout.tsx`), then click another post in the sidebar. The text survives. Now click ♡ on the LikeButton (it lives in the *page*) and switch posts. It resets. That's **partial rendering**: Next.js only swaps the segment that changed.
+🔬 **Observe it:** open any post, type in the *Scratchpad* (it lives in `posts/layout.tsx`), then click another post in the sidebar. The text survives. That's **partial rendering**: Next.js only swaps the segment that changed, and the shared layout stays mounted.
+
+Now click ♡ on the LikeButton (it lives in the *page*) and open a **different** post. That post's button starts fresh. Each `[slug]` value is its own segment, so post B is a brand-new component instance with its own `useState`. Then press the browser **Back** button. Post A's like is **still there!**
+
+**Why?** With Cache Components (Next 16), pages you navigate away from are not unmounted. Next.js hides them with React's `<Activity>` (`display: none`) and keeps their state and DOM, for up to **3 routes**. So the full picture is:
+
+| Situation | What happens to client state |
+|---|---|
+| Shared layout, page changes below it | Layout stays **mounted**, so its state is kept |
+| Navigating to a route you haven't visited (recently) | Fresh mount, so state starts from the initial value |
+| Coming back to one of the last ~3 routes | **Restored** from Activity, so the state is still there |
+
+> ⚠️ **Correction (after homework review):** an earlier version of these notes said the LikeButton simply "resets" when you switch posts. That was the pre-Next-16 behavior. See the [Preserving UI state guide](https://nextjs.org/docs/app/guides/preserving-ui-state).
 
 ## 3. Server Components vs Client Components ⭐ (the most important concept)
 

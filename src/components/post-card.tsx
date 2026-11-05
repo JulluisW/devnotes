@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { formatDate, type Post } from "@/lib/posts";
+import Link from 'next/link';
+import { formatDate, type Post } from '@/lib/posts';
 
 export function PostCard({ post }: { post: Post }) {
   return (
@@ -17,11 +17,10 @@ export function PostCard({ post }: { post: Post }) {
       <p className="mt-2 text-sm text-foreground/70">{post.excerpt}</p>
       <ul className="mt-3 flex flex-wrap gap-2">
         {post.tags.map((tag) => (
-          <li
-            key={tag}
-            className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs text-foreground/60"
-          >
-            #{tag}
+          <li key={tag} className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs text-foreground/60">
+            <Link href={`/tags/${tag}`} className="hover:underline">
+              #{tag}
+            </Link>
           </li>
         ))}
       </ul>

@@ -1,9 +1,9 @@
 // 📘 Day 1: [slug] is a DYNAMIC segment. /posts/anything matches this file,
 // and the matched value arrives in `params`.
-import { Suspense } from "react";
-import { notFound } from "next/navigation";
-import { LikeButton } from "@/components/like-button";
-import { formatDate, getAllPosts, getPostBySlug } from "@/lib/posts";
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { LikeButton } from '@/components/like-button';
+import { formatDate, getAllPosts, getPostBySlug } from '@/lib/posts';
 
 // 📘 generateStaticParams runs at BUILD time and tells Next.js which slugs
 // exist, so each post is prerendered to static HTML (great for SEO and speed).
@@ -18,7 +18,7 @@ export function generateStaticParams() {
 // navigation can't be instant. Instead we pass the Promise down and await it
 // inside <Suspense>. Everything outside the boundary becomes the instant
 // "static shell". (Day 3 covers this in depth.)
-export default function PostPage({ params }: PageProps<"/posts/[slug]">) {
+export default function PostPage({ params }: PageProps<'/posts/[slug]'>) {
   return (
     <Suspense fallback={<PostSkeleton />}>
       <PostContent params={params} />
@@ -28,9 +28,7 @@ export default function PostPage({ params }: PageProps<"/posts/[slug]">) {
 
 // 📘 PageProps<"/posts/[slug]"> is generated from the folder structure, so
 // `params` is typed as Promise<{ slug: string }>. Pick<> reuses just that key.
-async function PostContent({
-  params,
-}: Pick<PageProps<"/posts/[slug]">, "params">) {
+async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'>) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
 
@@ -46,7 +44,7 @@ async function PostContent({
       <h1 className="mt-2 text-3xl font-bold tracking-tight">{post.title}</h1>
 
       <div className="mt-6 space-y-4 leading-7 text-foreground/80">
-        {post.content.split("\n\n").map((paragraph, index) => (
+        {post.content.split('\n\n').map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}
       </div>

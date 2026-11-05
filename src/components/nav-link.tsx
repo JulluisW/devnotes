@@ -3,11 +3,11 @@
 // works in the browser, so it must be a Client Component.
 // Everything it imports also becomes part of the client bundle, so keep
 // client components small and push them to the leaves of your tree.
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { Route } from "next";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type { Route } from 'next';
 
 type NavLinkProps = {
   // 📘 `Route` comes from typedRoutes: only URLs that actually exist
@@ -18,16 +18,14 @@ type NavLinkProps = {
 
 export function NavLink({ href, children }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
     <Link
       href={href}
-      aria-current={isActive ? "page" : undefined}
+      aria-current={isActive ? 'page' : undefined}
       className={
-        isActive
-          ? "font-medium text-foreground"
-          : "text-foreground/60 transition-colors hover:text-foreground"
+        isActive ? 'font-medium text-foreground' : 'text-foreground/60 transition-colors hover:text-foreground'
       }
     >
       {children}
