@@ -1,0 +1,10 @@
+// 📘 Pure helpers with no server-only imports, so both Server and Client
+// Components can use them.
+export function formatDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}

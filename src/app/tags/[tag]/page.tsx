@@ -1,24 +1,19 @@
 import { Suspense } from 'react';
-import { getAllPosts, getPostsByTag } from '@/lib/posts';
-import { PostCard } from '@/components/post-card';
 import { notFound } from 'next/navigation';
+import { PostCard } from '@/components/post-card';
+import { PostListSkeleton } from '@/components/skeletons';
+import { getAllTags, getPostsByTag } from '@/data/posts';
 
-export function generateStaticParams() {
-  const tags = getAllPosts().reduce((acc, post) => {
-    post.tags.forEach((tag) => {
-      if (!acc.includes(tag)) {
-        acc.push(tag);
-      }
-    });
-    return acc;
-  }, [] as string[]);
-
-  return tags.map((tag) => ({ tag: tag }));
+// 📘 Day 2: the unique-tags logic moved into the DAL (getAllTags), so pages
+// don't need to know how tags are stored.
+export async function generateStaticParams() {
+  const tags = await getAllTags();
+  return tags.map((tag) => ({ tag }));
 }
 
-export default async function TagsPage({ params }: PageProps<'/tags/[tag]'>) {
+export default function TagsPage({ params }: PageProps<'/tags/[tag]'>) {
   return (
-    <Suspense fallback={<PostSkeleton />}>
+    <Suspense fallback={<PostListSkeleton />}>
       <PostContent params={params} />
     </Suspense>
   );
@@ -26,7 +21,7 @@ export default async function TagsPage({ params }: PageProps<'/tags/[tag]'>) {
 
 async function PostContent({ params }: Pick<PageProps<'/tags/[tag]'>, 'params'>) {
   const { tag } = await params;
-  const posts = getPostsByTag(tag);
+  const posts = await getPostsByTag(tag);
   if (posts.length === 0) notFound();
   return (
     <div>
@@ -37,16 +32,6 @@ async function PostContent({ params }: Pick<PageProps<'/tags/[tag]'>, 'params'>)
           <PostCard key={post.slug} post={post} />
         ))}
       </div>
-    </div>
-  );
-}
-
-function PostSkeleton() {
-  return (
-    <div className="animate-pulse space-y-4" aria-hidden>
-      <div className="h-4 w-48 rounded bg-foreground/10" />
-      <div className="h-8 w-3/4 rounded bg-foreground/10" />
-      <div className="h-24 rounded bg-foreground/10" />
     </div>
   );
 }

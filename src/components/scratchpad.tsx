@@ -2,18 +2,16 @@
 // different post. The text survives because layouts stay mounted across
 // navigations (only the page segment re-renders). Compare that with the
 // LikeButton inside the page, which resets for every post.
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
 export function Scratchpad() {
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState('');
 
   return (
     <label className="block">
-      <span className="text-xs font-medium uppercase tracking-wide text-foreground/50">
-        Scratchpad (layout state)
-      </span>
+      <span className="text-xs font-medium uppercase tracking-wide text-foreground/50">Scratchpad (layout state)</span>
       <textarea
         value={notes}
         onChange={(event) => setNotes(event.target.value)}

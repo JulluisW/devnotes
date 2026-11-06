@@ -14,6 +14,7 @@ export function SiteHeader() {
         <nav className="flex gap-5 text-sm">
           <NavLink href="/">Home</NavLink>
           <NavLink href="/posts">Posts</NavLink>
+          <NavLink href="/authors">Authors</NavLink>
           <NavLink href="/about">About</NavLink>
         </nav>
       </div>

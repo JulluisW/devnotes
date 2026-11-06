@@ -1,11 +1,17 @@
 import Link from 'next/link';
-import { formatDate, type Post } from '@/lib/posts';
+import type { PostSummary } from '@/data/posts';
+import { formatDate } from '@/lib/format';
 
-export function PostCard({ post }: { post: Post }) {
+// 📘 Day 2: `import type` is erased at compile time. This component imports
+// only the TYPE from the server-only DAL, so it's still safe to render anywhere.
+export function PostCard({ post }: { post: PostSummary }) {
   return (
     <article className="rounded-lg border border-foreground/10 p-5 transition-colors hover:border-foreground/25">
       <p className="text-xs text-foreground/50">
-        {formatDate(post.publishedAt)} · {post.author}
+        {formatDate(post.publishedAt)} ·{' '}
+        <Link href={`/authors/${post.author.id}`} className="hover:text-foreground hover:underline">
+          {post.author.name}
+        </Link>
       </p>
       <h2 className="mt-1 text-lg font-semibold">
         {/* 📘 Typed routes understand template literals: `/posts/${string}`

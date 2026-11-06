@@ -2,14 +2,21 @@
 // and the matched value arrives in `params`.
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import { AuthorCard } from '@/components/author-card';
 import { LikeButton } from '@/components/like-button';
-import { formatDate, getAllPosts, getPostBySlug } from '@/lib/posts';
+import { RelatedPosts } from '@/components/related-posts';
+import { AuthorCardSkeleton, PostSkeleton } from '@/components/skeletons';
+import { getPostBySlug, getPostsByTag, getPublishedPosts } from '@/data/posts';
+import { formatDate } from '@/lib/format';
+import { ClientComponent } from './ClientComponent';
 
 // 📘 generateStaticParams runs at BUILD time and tells Next.js which slugs
 // exist, so each post is prerendered to static HTML (great for SEO and speed).
 // This replaces getStaticPaths from the Pages Router.
-export function generateStaticParams() {
-  return getAllPosts().map((post) => ({ slug: post.slug }));
+// 📘 Day 2: it can be async. Drafts aren't returned by the DAL, so they're never prerendered.
+export async function generateStaticParams() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 // 📘 Notice the page itself is NOT async and does NOT await params.
@@ -30,40 +37,46 @@ export default function PostPage({ params }: PageProps<'/posts/[slug]'>) {
 // `params` is typed as Promise<{ slug: string }>. Pick<> reuses just that key.
 async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'>) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   // 📘 notFound() throws, stops rendering, and shows the nearest not-found.tsx.
-  // TypeScript knows it never returns, so `post` is narrowed to `Post` below.
+  // TypeScript knows it never returns, so `post` is narrowed to `PostDetail` below.
   if (!post) notFound();
 
-  return (
-    <article>
-      <p className="text-sm text-foreground/50">
-        {formatDate(post.publishedAt)} · {post.author}
-      </p>
-      <h1 className="mt-2 text-3xl font-bold tracking-tight">{post.title}</h1>
+  const tags = getPostsByTag(post.tags[0]); // ⏳ fetches in parallel with <AuthorCard> below
 
-      <div className="mt-6 space-y-4 leading-7 text-foreground/80">
+  return (
+    <article className="space-y-8">
+      <header>
+        <p className="text-sm text-foreground/50">{formatDate(post.publishedAt)}</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight">{post.title}</h1>
+      </header>
+
+      <div className="space-y-4 leading-7 text-foreground/80">
         {post.content.split('\n\n').map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}
       </div>
 
-      <div className="mt-8 border-t border-foreground/10 pt-6">
-        {/* 📘 A Client Component island inside a Server Component page.
-            Only this button's JS is sent to the browser. */}
-        <LikeButton initialLikes={post.likes} />
-      </div>
-    </article>
-  );
-}
+      {/* 📘 A Client Component island inside a Server Component page.
+          Only this button's JS is sent to the browser. */}
+      <LikeButton initialLikes={post.likes} />
 
-function PostSkeleton() {
-  return (
-    <div className="animate-pulse space-y-4" aria-hidden>
-      <div className="h-4 w-48 rounded bg-foreground/10" />
-      <div className="h-8 w-3/4 rounded bg-foreground/10" />
-      <div className="h-24 rounded bg-foreground/10" />
-    </div>
+      <Suspense fallback={<div>Loading HAHAHAHA...</div>}>
+        <ClientComponent promise={tags} />
+      </Suspense>
+
+      {/* 📘 Day 2: SEQUENTIAL data. We can only fetch the author AFTER we know
+          post.authorId. That dependency is unavoidable, but it doesn't have to
+          block the article: the author gets its own <Suspense> boundary, so the
+          post content shows first and the author card streams in ~500ms later. */}
+      <Suspense fallback={<AuthorCardSkeleton />}>
+        <AuthorCard authorId={post.authorId} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <RelatedPosts slug={post.slug} />
+      </Suspense>
+    </article>
   );
 }
