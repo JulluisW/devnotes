@@ -62,7 +62,7 @@ async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'
           Only this button's JS is sent to the browser. */}
       <LikeButton initialLikes={post.likes} />
 
-      <Suspense fallback={<div>Loading HAHAHAHA...</div>}>
+      <Suspense fallback={<div>Loading...</div>}>
         <ClientComponent promise={tags} />
       </Suspense>
 

@@ -17,7 +17,7 @@
 | --- | --- | --- | --- |
 | 1 | **Foundations**: App Router, file-based routing, layouts, pages, Server vs Client Components, `<Link>`, dynamic routes | Home, posts list, post detail, about page, shared header | ✅ Done |
 | 2 | **Data layer**: async Server Components, a fake DB, `React.cache`, parallel vs sequential fetching, `server-only` | Authors pages, async fake DB, DAL with DTOs, streaming | ✅ Done |
-| 3 | **Rendering & caching**: Partial Prerendering, static shell, `<Suspense>` streaming, `use cache`, `cacheLife`, `cacheTag` | Cached post pages, streamed "trending" widget | ⏳ |
+| 3 | **Rendering & caching**: Partial Prerendering, static shell, `<Suspense>` streaming, `use cache`, `cacheLife`, `cacheTag` | Cached DAL (custom `blog` profile, tags), trending + live widgets, cached TagCloud | ✅ Done |
 | 4 | **Loading & error UX**: `loading.tsx`, `error.tsx`, `not-found.tsx`, `global-error.tsx`, `notFound()` / `redirect()` | Graceful failure everywhere | ⏳ |
 | 5 | **SEO I: Metadata API**: static `metadata`, `generateMetadata`, title templates, canonical URLs, Open Graph, Twitter cards, `viewport` | Every page has correct, unique metadata | ⏳ |
 | 6 | **SEO II: crawlers & rich results**: `sitemap.ts`, `robots.ts`, JSON-LD structured data, dynamic OG images (`ImageResponse`), `manifest.ts`, RSS | Google-ready site with share previews | ⏳ |
@@ -42,3 +42,4 @@ npm run start   # serve the production build
 
 - [Day 1: Foundations](./day-01-foundations.md)
 - [Day 2: The Data Layer](./day-02-data-layer.md) (includes the Activity warm-up)
+- [Day 3: Rendering & Caching](./day-03-caching.md)

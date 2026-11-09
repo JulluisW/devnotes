@@ -5,8 +5,19 @@
 //      fields the UI needs. Private columns like `internalNotes` are dropped.
 // `server-only` makes the BUILD FAIL if a Client Component ever imports this
 // file, so the DB code can never leak into the browser bundle.
+//
+// 📘 Day 3: every read is now a CACHED function: 'use cache' + cacheLife + cacheTag.
+//   - 'use cache'  → the return value is stored and reused ACROSS requests and users
+//                    (React.cache only lasted ONE request). The cache key is
+//                    function + arguments, so getPostsByTag('react') and
+//                    getPostsByTag('routing') are separate entries.
+//   - cacheLife()  → HOW LONG the entry is fresh (see the 'blog' profile in next.config.ts)
+//   - cacheTag()   → a LABEL, so on Day 7 a mutation can say "everything tagged
+//                    'posts' is outdated" with updateTag('posts').
+// Because the results can be computed at BUILD time, Next.js puts them straight
+// into the prerendered HTML: no DB query when a visitor arrives.
 import 'server-only';
-import { cache } from 'react';
+import { cacheLife, cacheTag } from 'next/cache';
 import { db, type AuthorRow, type PostRow } from '@/lib/db';
 
 export type PostSummary = {
@@ -41,6 +52,7 @@ const byNewest = (a: { publishedAt: string }, b: { publishedAt: string }) => b.p
 // 📘 PARALLEL fetching: posts and authors don't depend on each other, so we
 // start both queries at once and wait for both with Promise.all.
 // Total time ≈ max(600ms, 300ms) = 600ms, not 600 + 300 = 900ms.
+// (Not cached itself: it's an internal helper. The exported functions below cache its result.)
 async function findSummaries(where: { authorId?: string; tag?: string } = {}): Promise<PostSummary[]> {
   const [posts, authors] = await Promise.all([
     db.posts.findMany({ ...where, status: 'published' }),
@@ -49,28 +61,59 @@ async function findSummaries(where: { authorId?: string; tag?: string } = {}): P
   return posts.map((post) => toSummary(post, authors)).sort(byNewest);
 }
 
-export const getPublishedPosts = cache(async (): Promise<PostSummary[]> => findSummaries());
+export async function getPublishedPosts(): Promise<PostSummary[]> {
+  'use cache';
+  cacheLife('blog');
+  cacheTag('posts');
+  return findSummaries();
+}
 
 export async function getPostsByTag(tag: string): Promise<PostSummary[]> {
+  'use cache';
+  cacheLife('blog');
+  cacheTag('posts', `tag:${tag}`);
   return findSummaries({ tag });
 }
 
 export async function getPostsByAuthor(authorId: string): Promise<PostSummary[]> {
+  'use cache';
+  cacheLife('blog');
+  cacheTag('posts', `author:${authorId}`);
   return findSummaries({ authorId });
 }
 
 export async function getAllTags(): Promise<string[]> {
+  'use cache';
+  cacheLife('blog');
+  cacheTag('posts');
   const posts = await db.posts.findMany({ status: 'published' });
   return [...new Set(posts.flatMap((post) => post.tags))].sort();
 }
 
-// 📘 React.cache MEMOIZES this function for the duration of ONE request.
-// The post page calls getPostBySlug() in two different components
-// (<PostContent> and <RelatedPosts>), and on Day 5 generateMetadata will call it too.
-// Without cache() that's multiple DB queries. With it, it's exactly one.
-// Check the terminal: you'll see a single `posts.findBySlug` per page load.
-// (fetch() requests get this deduplication automatically. DB calls need cache().)
-export const getPostBySlug = cache(async (slug: string): Promise<PostDetail | null> => {
+// 📘 Day 3: "Trending" changes as people like posts, so it gets a SHORTER
+// lifetime than the posts themselves. 'minutes' = revalidate every minute.
+// That's still long enough (expire ≥ 5 min) to be included in the prerender.
+export async function getTrendingPosts(limit = 3): Promise<(PostSummary & { likes: number })[]> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag('posts', 'trending');
+  const [posts, authors] = await Promise.all([db.posts.findMany({ status: 'published' }), db.authors.findMany()]);
+  return posts
+    .sort((a, b) => b.likes - a.likes)
+    .slice(0, limit)
+    .map((post) => ({ ...toSummary(post, authors), likes: post.likes }));
+}
+
+// 📘 Day 2 used React.cache here to dedupe calls within ONE request.
+// 'use cache' covers that too (same slug → same entry), AND it survives
+// across requests, so React.cache is no longer needed for this function.
+// Tags: 'posts' (everything) + `post:<slug>` (just this one). On Day 7,
+// editing one post will only invalidate `post:<slug>`, not the whole blog.
+export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
+  'use cache';
+  cacheLife('blog');
+  cacheTag('posts', `post:${slug}`);
+
   const post = await db.posts.findBySlug(slug);
   // 📘 Authorization lives in the DAL: a draft behaves exactly like a missing post.
   if (!post || post.status !== 'published') return null;
@@ -85,4 +128,4 @@ export const getPostBySlug = cache(async (slug: string): Promise<PostDetail | nu
     likes: post.likes,
     authorId: post.authorId,
   };
-});
+}
