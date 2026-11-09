@@ -6,6 +6,7 @@
 // Swap this file for Prisma/Drizzle/Postgres later and nothing else changes,
 // because only the Data Access Layer (src/data) is allowed to import it.
 import 'server-only';
+import { chaos } from './chaos';
 
 export type AuthorRow = {
   id: string;
@@ -28,6 +29,9 @@ export type PostRow = {
   likes: number;
   status: 'published' | 'draft';
   internalNotes: string; // 🔒 private
+  // 📘 Day 4: old URLs of this post. When a slug is renamed, the old one goes here
+  // so old links (from Google, Twitter, other blogs) can be redirected, not broken.
+  previousSlugs: string[];
 };
 
 const authors: AuthorRow[] = [
@@ -75,6 +79,7 @@ You opt into interactivity with the "use client" directive, only where you need 
     likes: 42,
     status: 'published',
     internalNotes: 'Promote on the newsletter.',
+    previousSlugs: ['server-components-101'], // 📘 Day 4: renamed. The old URL must 308 here.
   },
   {
     id: 2,
@@ -92,6 +97,7 @@ Square brackets, like [slug], create dynamic segments whose value you read from 
     likes: 31,
     status: 'published',
     internalNotes: '',
+    previousSlugs: [],
   },
   {
     id: 3,
@@ -110,6 +116,7 @@ This is called partial rendering, and it's one of the reasons App Router navigat
     likes: 18,
     status: 'published',
     internalNotes: 'Add an Activity follow-up post.',
+    previousSlugs: [],
   },
   {
     id: 4,
@@ -128,6 +135,7 @@ Combine that with strict mode and you get a codebase where refactors are safe.`,
     likes: 27,
     status: 'published',
     internalNotes: '',
+    previousSlugs: [],
   },
   {
     id: 5,
@@ -141,6 +149,7 @@ Combine that with strict mode and you get a codebase where refactors are safe.`,
     likes: 0,
     status: 'draft', // 📘 must never appear on the public site
     internalNotes: 'Waiting for legal review.',
+    previousSlugs: [],
   },
 ];
 
@@ -151,10 +160,17 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // 📘 Every query goes through this helper. It logs when a query starts (→) and
 // ends (←) in your TERMINAL, so you can see sequential vs parallel fetching
 // and React.cache deduplication with your own eyes.
-async function query<T>(label: string, latencyMs: number, run: () => T): Promise<T> {
+//
+// 📘 Day 4: `failureRate` (from src/lib/chaos.ts) makes a query throw, like a real
+// DB timing out. A thrown error travels up to the nearest error boundary.
+async function query<T>(label: string, latencyMs: number, run: () => T, failureRate = 0): Promise<T> {
   const startedAt = performance.now();
   console.log(`[db] → ${label}`);
   await sleep(latencyMs);
+  if (Math.random() < failureRate) {
+    console.log(`[db] ✗ ${label} failed: connection timeout`);
+    throw new Error(`DB query failed: ${label} (connection timeout)`);
+  }
   console.log(`[db] ← ${label} (${Math.round(performance.now() - startedAt)}ms)`);
   // structuredClone: like a real DB, callers get fresh objects, never our internal rows
   return structuredClone(run());
@@ -172,7 +188,18 @@ export const db = {
         ),
       ),
     findBySlug: (slug: string) =>
-      query(`posts.findBySlug("${slug}")`, 400, () => posts.find((post) => post.slug === slug) ?? null),
+      query(
+        `posts.findBySlug("${slug}")`,
+        400,
+        () => posts.find((post) => post.slug === slug) ?? null,
+        chaos.postBySlug,
+      ),
+    findByPreviousSlug: (slug: string) =>
+      query(
+        `posts.findByPreviousSlug("${slug}")`,
+        300,
+        () => posts.find((post) => post.previousSlugs.includes(slug)) ?? null,
+      ),
   },
   authors: {
     findMany: () => query('authors.findMany()', 300, () => authors),

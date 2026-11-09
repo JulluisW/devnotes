@@ -11,10 +11,16 @@
 //                                                      → ALSO in the build output
 //   ③ dynamic hole  <LiveStatsBadge> ('live', expire < 5 min) → fallback in the shell,
 //                                                        value streamed per request
+//
+// 📘 Day 4: the live badge depends on a flaky third-party API. <WidgetBoundary>
+// keeps a failure contained to the badge. Without it, the error would bubble up
+// to app/error.tsx and the WHOLE home page would be replaced by the error panel.
+// Try it: set chaos.analytics = 1 in src/lib/chaos.ts.
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { PostCard } from '@/components/post-card';
 import { PostListSkeleton } from '@/components/skeletons';
+import { WidgetBoundary } from '@/components/widget-boundary';
 import { getPublishedPosts, getTrendingPosts } from '@/data/posts';
 import { getLiveStats } from '@/data/stats';
 
@@ -22,9 +28,11 @@ export default function HomePage() {
   return (
     <div className="space-y-12">
       <section>
-        <Suspense fallback={<LiveStatsFallback />}>
-          <LiveStatsBadge />
-        </Suspense>
+        <WidgetBoundary name="Live stats">
+          <Suspense fallback={<LiveStatsFallback />}>
+            <LiveStatsBadge />
+          </Suspense>
+        </WidgetBoundary>
         <h1 className="mt-4 text-4xl font-bold tracking-tight">Learn Next.js by building it.</h1>
         <p className="mt-4 max-w-2xl text-foreground/70">
           DevNotes is a practice blog that grows one feature at a time: routing, data fetching, caching, SEO, Server

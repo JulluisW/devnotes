@@ -129,3 +129,15 @@ export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
     authorId: post.authorId,
   };
 }
+
+// 📘 Day 4: when a slug isn't found, it may be an OLD url of a renamed post.
+// Returns the current slug so the page can permanentRedirect() there, or null.
+// Tagged 'posts' because the answer changes whenever any post is renamed.
+export async function getRenamedPostSlug(oldSlug: string): Promise<string | null> {
+  'use cache';
+  cacheLife('blog');
+  cacheTag('posts');
+  const post = await db.posts.findByPreviousSlug(oldSlug);
+  // A draft that used to be public is still not public: no redirect, just a 404.
+  return post && post.status === 'published' ? post.slug : null;
+}

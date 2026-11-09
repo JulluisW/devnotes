@@ -1,6 +1,6 @@
 import 'server-only';
 import { cacheLife } from 'next/cache';
-import { db } from '@/lib/db';
+import { analytics } from '@/lib/analytics';
 
 export type LiveStats = { readersNow: number; generatedAt: string };
 
@@ -9,17 +9,18 @@ export type LiveStats = { readersNow: number; generatedAt: string };
 // prerender. Next.js leaves this as a "dynamic hole": the page's
 // static shell ships instantly with a fallback, and this value streams in at
 // request time. Requests within the same 10 seconds still share one result,
-// so a traffic spike doesn't hammer the DB.
+// so a traffic spike doesn't hammer the analytics API.
 //
-// Math.random() and new Date() are allowed here because 'use cache' captures
-// the result. Outside a cache, Next.js would make you call `await connection()`
-// first to say "this is intentionally per-request".
+// 📘 Day 4: the number now comes from a third-party analytics API that can fail
+// (see chaos.analytics). A thrown error is NOT stored in the cache, so the next
+// request (or a retry() click) calls the API again.
+//
+// new Date() is allowed here because 'use cache' captures the result. Outside a
+// cache, Next.js would make you call `await connection()` first to say "this is
+// intentionally per-request".
 export async function getLiveStats(): Promise<LiveStats> {
   'use cache';
   cacheLife('live');
-  const posts = await db.posts.findMany({ status: 'published' });
-  return {
-    readersNow: posts.length * 3 + Math.floor(Math.random() * 20),
-    generatedAt: new Date().toISOString(),
-  };
+  const readersNow = await analytics.readersNow();
+  return { readersNow, generatedAt: new Date().toISOString() };
 }

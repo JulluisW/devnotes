@@ -11,6 +11,9 @@ export async function generateStaticParams() {
   return authors.map((author) => ({ id: author.id }));
 }
 
+// 📘 Day 4 homework #1: fully static, so /authors/nobody is a real 404 on the first visit.
+export const ensureStatic = 'navigation';
+
 export default function AuthorPage({ params }: PageProps<'/authors/[id]'>) {
   return (
     <Suspense fallback={<PostListSkeleton count={2} />}>

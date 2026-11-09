@@ -1,5 +1,12 @@
 // 📘 Day 1: Special file. Rendered for unmatched URLs and whenever notFound()
 // is called. Next.js responds with a 404 status. Day 4 goes deeper.
+//
+// 📘 Day 4: this ROOT not-found.tsx has two jobs:
+//   1. URLs that match NO route (/totally/unknown) → always a real 404, nothing renders first
+//   2. notFound() calls with no closer not-found.tsx (e.g. /authors/nobody, /tags/nope)
+// /posts/[slug] now has its own not-found.tsx, so missing posts get that one instead.
+// The status code (404 vs 200) is NOT decided by this file. It depends on whether
+// notFound() ran before or after the response started streaming.
 import Link from "next/link";
 
 export default function NotFound() {
