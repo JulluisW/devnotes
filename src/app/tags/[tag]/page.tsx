@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostCard } from '@/components/post-card';
 import { getAllTags, getPostsByTag } from '@/data/posts';
-import { baseOpenGraph } from '@/lib/site';
+import { baseOpenGraph, minPostsForTagPage } from '@/lib/site';
 
 // 📘 Day 2: the unique-tags logic moved into the DAL (getAllTags), so pages
 // don't need to know how tags are stored.
@@ -31,7 +31,9 @@ export async function generateMetadata({ params }: PageProps<'/tags/[tag]'>): Pr
     description: `${posts.length} DevNotes ${posts.length === 1 ? 'article' : 'articles'} about ${tag}.`,
     alternates: { canonical: url },
     openGraph: { ...baseOpenGraph, type: 'website', url },
-    robots: posts.length < 2 ? { index: false, follow: true } : undefined,
+    // 📘 Day 5 homework #2: a tag with only 1 post isn't useful in Google results.
+    // noindex = "don't show this page", follow = "but do follow its links".
+    robots: posts.length < minPostsForTagPage ? { index: false, follow: true } : undefined,
   };
 }
 

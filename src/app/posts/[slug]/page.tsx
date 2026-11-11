@@ -11,7 +11,8 @@ import Link from 'next/link';
 import { getAuthor } from '@/data/authors';
 import { getPostBySlug, getPublishedPosts, getRenamedPostSlug, type PostDetail } from '@/data/posts';
 import { formatDate } from '@/lib/format';
-import { baseOpenGraph } from '@/lib/site';
+import { absoluteUrl, baseOpenGraph, ogImageSize } from '@/lib/site';
+import { JsonLd } from '@/components/json-ld';
 
 // 📘 generateStaticParams runs at BUILD time and tells Next.js which slugs
 // exist, so each post is prerendered to static HTML (great for SEO and speed).
@@ -85,6 +86,10 @@ export async function generateMetadata({ params }: PageProps<'/posts/[slug]'>): 
     // no og:site_name or og:locale (measured).
     openGraph: {
       ...baseOpenGraph,
+      // 📘 Day 6: this post's own picture (./opengraph-image.tsx) instead of the
+      // site-wide one from baseOpenGraph. X/Twitter copies it, and switches to
+      // the large card automatically.
+      images: [{ url: `/posts/${post.slug}/opengraph-image`, ...ogImageSize, alt: post.title }],
       type: 'article', // 'article' also outputs the date, author and tags below
       url,
       publishedTime: post.publishedAt,
@@ -154,6 +159,37 @@ async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'
       <Suspense fallback={null}>
         <RelatedPosts slug={post.slug} />
       </Suspense>
+
+      {/* 📘 Day 6: it needs the author's name, so it waits for getAuthor. It has
+          its own <Suspense> so the article doesn't wait for it (same idea as the
+          author card above). */}
+      <Suspense fallback={null}>
+        <PostJsonLd post={post} />
+      </Suspense>
     </article>
+  );
+}
+
+// 📘 Day 6: describes this post to Google as a schema.org "BlogPosting".
+// Every URL in it must be a full URL, hence absoluteUrl().
+async function PostJsonLd({ post }: { post: PostDetail }) {
+  const author = await getAuthor(post.authorId); // cached: same entry generateMetadata used
+
+  return (
+    <JsonLd
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.excerpt,
+        datePublished: post.publishedAt,
+        url: absoluteUrl(`/posts/${post.slug}`),
+        image: absoluteUrl(`/posts/${post.slug}/opengraph-image`),
+        keywords: post.tags,
+        author: author
+          ? { '@type': 'Person', name: author.name, url: absoluteUrl(`/authors/${author.id}`) }
+          : undefined,
+      }}
+    />
   );
 }

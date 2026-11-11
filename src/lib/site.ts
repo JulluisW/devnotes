@@ -19,7 +19,29 @@ export const site = {
 // openGraph completely. The two objects are not combined. So every page writes
 //   openGraph: { ...baseOpenGraph, type, url }
 // to copy siteName and locale back in.
+//
+// 📘 Day 6: the picture is in here for the same reason. app/opengraph-image.tsx
+// draws the site-wide picture, but when a page sets its own `openGraph`, the
+// picture is replaced away too (measured: /about, /posts, authors and tags had
+// no og:image). Listing it here puts it back on every page. Posts replace
+// `images` with their own picture.
+export const ogImageSize = { width: 1200, height: 630 };
+
 export const baseOpenGraph = {
   siteName: site.name,
   locale: site.locale,
+  images: [{ url: '/opengraph-image', ...ogImageSize, alt: `${site.name}: learn Next.js by building it` }],
 } satisfies Metadata['openGraph'];
+
+// 📘 Day 6: turns a path like "/posts/x" into a full URL like
+// "http://localhost:3005/posts/x". sitemap.xml and JSON-LD need full URLs, and
+// metadataBase (Day 5) only works inside `metadata` objects, so they use this.
+export function absoluteUrl(path: string): string {
+  return new URL(path, site.url).toString();
+}
+
+// 📘 Day 6: a tag page needs at least this many posts to be shown in Google.
+// Two places use it and must agree: the tag page's `robots` tag (Day 5
+// homework #2) and sitemap.ts. Don't list a page in the sitemap while also
+// telling Google not to show it.
+export const minPostsForTagPage = 2;

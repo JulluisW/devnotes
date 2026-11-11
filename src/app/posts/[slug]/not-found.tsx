@@ -12,12 +12,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getPublishedPosts } from '@/data/posts';
+import { baseOpenGraph } from '@/lib/site';
 
 // 📘 Day 5: the tab title for a missing post: "Post not found | DevNotes".
 // Next.js only uses it when the page's generateMetadata calls notFound()
 // (see loadPost in page.tsx).
+//
+// 📘 Day 6: without `openGraph`, Next.js points this 404's og:image at
+// ./opengraph-image.tsx for the missing slug, a picture that is itself a 404
+// (measured). The site-wide picture from baseOpenGraph replaces it.
 export const metadata: Metadata = {
   title: 'Post not found',
+  openGraph: { ...baseOpenGraph },
 };
 
 export default async function PostNotFound() {

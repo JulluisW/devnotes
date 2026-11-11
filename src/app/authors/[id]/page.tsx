@@ -3,10 +3,11 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { PostCard } from '@/components/post-card';
 import { PostListSkeleton } from '@/components/skeletons';
-import { getAuthor, getAuthors } from '@/data/authors';
+import { type Author, getAuthor, getAuthors } from '@/data/authors';
 import { getPostsByAuthor } from '@/data/posts';
 import { formatDate } from '@/lib/format';
-import { baseOpenGraph } from '@/lib/site';
+import { absoluteUrl, baseOpenGraph } from '@/lib/site';
+import { JsonLd } from '@/components/json-ld';
 
 export async function generateStaticParams() {
   const authors = await getAuthors();
@@ -72,6 +73,24 @@ async function AuthorProfile({ params }: Pick<PageProps<'/authors/[id]'>, 'param
           <PostCard key={post.slug} post={post} />
         ))}
       </div>
+      {/* 📘 Day 6 homework #2: author is already loaded above, so this needs no
+          Suspense of its own (the post page's PostJsonLd does, because it awaits getAuthor). */}
+      <AuthorJsonLd author={author} />
     </div>
+  );
+}
+
+function AuthorJsonLd({ author }: { author: Author }) {
+  return (
+    <JsonLd
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: author.name,
+        jobTitle: author.role,
+        description: author.bio,
+        url: absoluteUrl(`/authors/${author.id}`),
+      }}
+    />
   );
 }
