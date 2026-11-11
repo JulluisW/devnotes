@@ -2,8 +2,13 @@
 // notFound(). It replaces the root app/not-found.tsx for this segment, and lists the
 // real authors so a typo isn't a dead end.
 // No 'use cache' needed here: getAuthors() is already cached in the DAL.
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getAuthors } from '@/data/authors';
+
+export const metadata: Metadata = {
+  title: 'Author not found',
+};
 
 export default async function AuthorNotFound() {
   const authors = await getAuthors();

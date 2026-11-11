@@ -19,7 +19,7 @@
 | 2 | **Data layer**: async Server Components, a fake DB, `React.cache`, parallel vs sequential fetching, `server-only` | Authors pages, async fake DB, DAL with DTOs, streaming | ✅ Done |
 | 3 | **Rendering & caching**: Partial Prerendering, static shell, `<Suspense>` streaming, `use cache`, `cacheLife`, `cacheTag` | Cached DAL (custom `blog` profile, tags), trending + live widgets, cached TagCloud | ✅ Done |
 | 4 | **Loading & error UX**: `loading.tsx`, `error.tsx`, `not-found.tsx`, `global-error.tsx`, `catchError`, `notFound()` / `permanentRedirect()`, status codes vs streaming, `ensureStatic` | Real 404/308 status codes, nested error boundaries, widget-level boundary, failure switches | ✅ Done |
-| 5 | **SEO I: Metadata API**: static `metadata`, `generateMetadata`, title templates, canonical URLs, Open Graph, Twitter cards, `viewport` | Every page has correct, unique metadata | ⏳ |
+| 5 | **SEO I: Metadata API**: static `metadata`, `generateMetadata`, title templates, canonical URLs, Open Graph, Twitter cards, `viewport` | Every page has correct, unique metadata (title template, canonical, Open Graph, 404 titles, theme color) | ✅ Done |
 | 6 | **SEO II: crawlers & rich results**: `sitemap.ts`, `robots.ts`, JSON-LD structured data, dynamic OG images (`ImageResponse`), `manifest.ts`, RSS | Google-ready site with share previews | ⏳ |
 | 7 | **Mutations**: Server Actions, `<Form>`, `useActionState`, `useOptimistic`, Zod validation, `updateTag` / `revalidateTag` / `refresh` | Comments and likes that persist | ⏳ |
 | 8 | **Route Handlers**: `route.ts`, HTTP methods, caching GET handlers, webhooks, BFF pattern | Public JSON API and RSS feed | ⏳ |
@@ -44,3 +44,4 @@ npm run start   # serve the production build
 - [Day 2: The Data Layer](./day-02-data-layer.md) (includes the Activity warm-up)
 - [Day 3: Rendering & Caching](./day-03-caching.md)
 - [Day 4: Loading & Error UX](./day-04-loading-error.md)
+- [Day 5: SEO I, the Metadata API](./day-05-metadata.md)

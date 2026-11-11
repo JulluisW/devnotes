@@ -1,5 +1,17 @@
 // 📘 Day 1: A folder (`about`) + a page.tsx = the "/about" route.
 // No data, no interactivity, so this is pure static HTML at build time.
+import type { Metadata } from 'next';
+import { baseOpenGraph } from '@/lib/site';
+
+// 📘 Day 5: fixed text (no database, no URL params), so a plain `metadata` object
+// is enough. The layout's template turns "About" into "About | DevNotes".
+export const metadata: Metadata = {
+  title: 'About',
+  description: 'Why DevNotes exists and how the course is organized: one Next.js feature per day.',
+  alternates: { canonical: '/about' },
+  openGraph: { ...baseOpenGraph, type: 'website', url: '/about' },
+};
+
 export default function AboutPage() {
   return (
     <article className="max-w-2xl space-y-4">

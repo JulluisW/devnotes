@@ -1,7 +1,16 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { AuthorCard } from '@/components/author-card';
 import { LinkListSkeleton } from '@/components/skeletons';
 import { getAuthors } from '@/data/authors';
+import { baseOpenGraph } from '@/lib/site';
+
+export const metadata: Metadata = {
+  title: 'Authors',
+  description: 'The engineers who write DevNotes, and what each of them writes about.',
+  alternates: { canonical: '/authors' },
+  openGraph: { ...baseOpenGraph, type: 'website', url: '/authors' },
+};
 
 export default function AuthorsPage() {
   return (

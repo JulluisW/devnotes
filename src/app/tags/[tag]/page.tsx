@@ -1,6 +1,8 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostCard } from '@/components/post-card';
 import { getAllTags, getPostsByTag } from '@/data/posts';
+import { baseOpenGraph } from '@/lib/site';
 
 // 📘 Day 2: the unique-tags logic moved into the DAL (getAllTags), so pages
 // don't need to know how tags are stored.
@@ -13,6 +15,25 @@ export async function generateStaticParams() {
 // that wasn't prerendered, Next.js waits for the complete page instead of sending
 // loading.tsx first, so /tags/nope gets a real 404 on the first visit.
 export const ensureStatic = 'navigation';
+
+// 📘 Day 5: a different title and description for each tag, built from data:
+// "Posts tagged #react" and "1 DevNotes article about react."
+// getPostsByTag(tag) is cached, so the page's own call below doesn't query again.
+export async function generateMetadata({ params }: PageProps<'/tags/[tag]'>): Promise<Metadata> {
+  const { tag } = await params;
+  const posts = await getPostsByTag(tag);
+  // 📘 Called here too, so a missing tag gets the "Page not found" title from app/not-found.tsx.
+  if (posts.length === 0) notFound();
+
+  const url = `/tags/${tag}`;
+  return {
+    title: `Posts tagged #${tag}`,
+    description: `${posts.length} DevNotes ${posts.length === 1 ? 'article' : 'articles'} about ${tag}.`,
+    alternates: { canonical: url },
+    openGraph: { ...baseOpenGraph, type: 'website', url },
+    robots: posts.length < 2 ? { index: false, follow: true } : undefined,
+  };
+}
 
 // 📘 Day 4: the page is async and awaits params at the TOP. That's fine now,
 // because ./loading.tsx wraps this whole page in <Suspense>. The await happens

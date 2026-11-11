@@ -16,6 +16,7 @@
 // keeps a failure contained to the badge. Without it, the error would bubble up
 // to app/error.tsx and the WHOLE home page would be replaced by the error panel.
 // Try it: set chaos.analytics = 1 in src/lib/chaos.ts.
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { PostCard } from '@/components/post-card';
@@ -23,6 +24,16 @@ import { PostListSkeleton } from '@/components/skeletons';
 import { WidgetBoundary } from '@/components/widget-boundary';
 import { getPublishedPosts, getTrendingPosts } from '@/data/posts';
 import { getLiveStats } from '@/data/stats';
+import { baseOpenGraph } from '@/lib/site';
+
+// 📘 Day 5: no `title` here, so the home page uses the layout's default title.
+// The page only adds its own address (canonical and og:url).
+// `...baseOpenGraph` is needed because this openGraph object replaces the
+// layout's one completely, including its `type`.
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+  openGraph: { ...baseOpenGraph, type: 'website', url: '/' },
+};
 
 export default function HomePage() {
   return (

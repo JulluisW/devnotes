@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { PostCard } from '@/components/post-card';
@@ -5,6 +6,7 @@ import { PostListSkeleton } from '@/components/skeletons';
 import { getAuthor, getAuthors } from '@/data/authors';
 import { getPostsByAuthor } from '@/data/posts';
 import { formatDate } from '@/lib/format';
+import { baseOpenGraph } from '@/lib/site';
 
 export async function generateStaticParams() {
   const authors = await getAuthors();
@@ -13,6 +15,23 @@ export async function generateStaticParams() {
 
 // 📘 Day 4 homework #1: fully static, so /authors/nobody is a real 404 on the first visit.
 export const ensureStatic = 'navigation';
+
+// 📘 Day 5: same pattern as the post page. getAuthor(id) is cached, so the page's
+// own getAuthor(id) call below doesn't query the DB again.
+// notFound() is called here too, so a missing author gets ./not-found.tsx's title.
+export async function generateMetadata({ params }: PageProps<'/authors/[id]'>): Promise<Metadata> {
+  const { id } = await params;
+  const author = await getAuthor(id);
+  if (!author) notFound();
+
+  const url = `/authors/${author.id}`;
+  return {
+    title: author.name, // → "Maya Chen | DevNotes"
+    description: author.bio,
+    alternates: { canonical: url },
+    openGraph: { ...baseOpenGraph, type: 'profile', url },
+  };
+}
 
 export default function AuthorPage({ params }: PageProps<'/authors/[id]'>) {
   return (

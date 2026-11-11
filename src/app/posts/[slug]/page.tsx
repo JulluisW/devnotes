@@ -1,5 +1,6 @@
 // 📘 Day 1: [slug] is a DYNAMIC segment. /posts/anything matches this file,
 // and the matched value arrives in `params`.
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { AuthorCard } from '@/components/author-card';
@@ -7,8 +8,10 @@ import { LikeButton } from '@/components/like-button';
 import { RelatedPosts } from '@/components/related-posts';
 import { AuthorCardSkeleton, PostSkeleton } from '@/components/skeletons';
 import Link from 'next/link';
-import { getPostBySlug, getPublishedPosts, getRenamedPostSlug } from '@/data/posts';
+import { getAuthor } from '@/data/authors';
+import { getPostBySlug, getPublishedPosts, getRenamedPostSlug, type PostDetail } from '@/data/posts';
 import { formatDate } from '@/lib/format';
+import { baseOpenGraph } from '@/lib/site';
 
 // 📘 generateStaticParams runs at BUILD time and tells Next.js which slugs
 // exist, so each post is prerendered to static HTML (great for SEO and speed).
@@ -33,6 +36,64 @@ export async function generateStaticParams() {
 // Bonus: the build now FAILS if someone adds uncached data to this page later.
 export const ensureStatic = 'navigation';
 
+// 📘 Day 4: EXPECTED errors are not exceptions. A missing post is a normal
+// outcome, so we handle it with intent instead of letting something crash:
+//   - the slug was renamed → permanentRedirect() = 308, old links keep their SEO value
+//   - it never existed     → notFound() = 404 + the nearest not-found.tsx
+// Both work by THROWING a special error that Next.js catches. Never call them
+// inside a try/catch, or your catch swallows the redirect (Day 4 homework #3).
+//
+// 📘 Day 5: this used to be inside <PostContent>. It's a helper now because
+// generateMetadata (below) needs the same "the post, or a 404, or a redirect"
+// logic. It never returns null: notFound() and permanentRedirect() stop the
+// function, so callers always get a real post.
+async function loadPost(slug: string): Promise<PostDetail> {
+  const post = await getPostBySlug(slug);
+  if (post) return post;
+
+  const currentSlug = await getRenamedPostSlug(slug);
+  if (currentSlug) permanentRedirect(`/posts/${currentSlug}`);
+  notFound();
+}
+
+// 📘 Day 5: generateMetadata builds the <title> and <meta> tags from data.
+// Use it when the tags depend on the URL (which post?) or on the database.
+// It gets the same `params` as the page.
+//
+// Loading the post here AND in <PostContent> is still only one DB query:
+// getPostBySlug has 'use cache' (Day 3), so the second call reads the saved copy.
+//
+// Why loadPost() and not `if (!post) return {}`? Next.js only uses the title from
+// ./not-found.tsx when notFound() is called HERE. With `return {}`, a missing post
+// showed the home page's title in the tab.
+//
+// ensureStatic = 'navigation' (above) covers this function too. It has to work at
+// build time, so it can't use cookies() or uncached data.
+export async function generateMetadata({ params }: PageProps<'/posts/[slug]'>): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await loadPost(slug);
+  const author = await getAuthor(post.authorId);
+  const url = `/posts/${post.slug}`;
+
+  return {
+    title: post.title, // → "Why Server Components Changed Everything | DevNotes"
+    description: post.excerpt, // the grey text Google may show under the blue link
+    authors: author ? [{ name: author.name, url: `/authors/${author.id}` }] : [],
+    alternates: { canonical: url }, // this post's official address
+    // 📘 This object REPLACES the layout's openGraph (the two aren't combined).
+    // `...baseOpenGraph` copies siteName and locale back in. Without it, posts had
+    // no og:site_name or og:locale (measured).
+    openGraph: {
+      ...baseOpenGraph,
+      type: 'article', // 'article' also outputs the date, author and tags below
+      url,
+      publishedTime: post.publishedAt,
+      authors: author ? [author.name] : [],
+      tags: post.tags,
+    },
+  };
+}
+
 // 📘 Notice the page itself is NOT async and does NOT await params.
 // `params` is URL data. If we awaited it here, at the top of the page, the
 // whole route would have to wait for it, and Next.js 16 warns that the
@@ -51,23 +112,8 @@ export default function PostPage({ params }: PageProps<'/posts/[slug]'>) {
 // `params` is typed as Promise<{ slug: string }>. Pick<> reuses just that key.
 async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'>) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
-
-  if (!post) {
-    // 📘 Day 4: EXPECTED errors are not exceptions. A missing post is a normal
-    // outcome, so we handle it with intent instead of letting something crash:
-    //   - the slug was renamed → permanentRedirect() = 308, old links keep their SEO value
-    //   - it never existed     → notFound() = 404 + the nearest not-found.tsx
-    // Both work by THROWING a special error that Next.js catches. Never call them
-    // inside a try/catch, or your catch swallows the redirect (Day 4 homework #3).
-    const currentSlug = await getRenamedPostSlug(slug);
-    if (currentSlug) permanentRedirect(`/posts/${currentSlug}`);
-
-    // 📘 notFound() throws, stops rendering, and shows the nearest not-found.tsx
-    // (now ./not-found.tsx, a post-specific one). TypeScript knows it never
-    // returns, so `post` is narrowed to `PostDetail` below.
-    notFound();
-  }
+  // 📘 Returns the post, or throws: 308 for a renamed slug, 404 (→ ./not-found.tsx) otherwise.
+  const post = await loadPost(slug);
 
   return (
     <article className="space-y-8">

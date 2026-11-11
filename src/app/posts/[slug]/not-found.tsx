@@ -9,8 +9,16 @@
 // Note: the ROOT app/not-found.tsx also handles URLs that match no route at all
 // (like /totally/unknown). Segment-level ones like this only run when notFound()
 // is called inside their segment.
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getPublishedPosts } from '@/data/posts';
+
+// 📘 Day 5: the tab title for a missing post: "Post not found | DevNotes".
+// Next.js only uses it when the page's generateMetadata calls notFound()
+// (see loadPost in page.tsx).
+export const metadata: Metadata = {
+  title: 'Post not found',
+};
 
 export default async function PostNotFound() {
   const posts = await getPublishedPosts();

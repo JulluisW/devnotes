@@ -7,7 +7,15 @@
 // /posts/[slug] now has its own not-found.tsx, so missing posts get that one instead.
 // The status code (404 vs 200) is NOT decided by this file. It depends on whether
 // notFound() ran before or after the response started streaming.
+import type { Metadata } from "next";
 import Link from "next/link";
+
+// 📘 Day 5: without this, a 404 page shows the home page's title in the tab.
+// No `robots` needed: Next.js adds <meta name="robots" content="noindex"> to
+// every 404 page by itself.
+export const metadata: Metadata = {
+  title: "Page not found",
+};
 
 export default function NotFound() {
   return (
