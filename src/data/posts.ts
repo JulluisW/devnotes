@@ -141,3 +141,13 @@ export async function getRenamedPostSlug(oldSlug: string): Promise<string | null
   // A draft that used to be public is still not public: no redirect, just a 404.
   return post && post.status === 'published' ? post.slug : null;
 }
+
+// 📘 Day 7: a WRITE. Writes live in the DAL too, for the same reason as reads:
+// the DAL decides what's allowed. You can't like a draft or a missing post.
+// No 'use cache' here: a write must run every time it's called.
+// Returns the new like count, or null if the post isn't public.
+export async function likePost(slug: string): Promise<number | null> {
+  const post = await db.posts.findBySlug(slug);
+  if (!post || post.status !== 'published') return null;
+  return db.posts.incrementLikes(slug);
+}

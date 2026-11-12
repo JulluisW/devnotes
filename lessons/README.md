@@ -21,7 +21,7 @@
 | 4 | **Loading & error UX**: `loading.tsx`, `error.tsx`, `not-found.tsx`, `global-error.tsx`, `catchError`, `notFound()` / `permanentRedirect()`, status codes vs streaming, `ensureStatic` | Real 404/308 status codes, nested error boundaries, widget-level boundary, failure switches | ✅ Done |
 | 5 | **SEO I: Metadata API**: static `metadata`, `generateMetadata`, title templates, canonical URLs, Open Graph, Twitter cards, `viewport` | Every page has correct, unique metadata (title template, canonical, Open Graph, 404 titles, theme color) | ✅ Done |
 | 6 | **SEO II: crawlers & rich results**: `robots.ts`, `sitemap.ts`, dynamic OG images (`opengraph-image` + `ImageResponse`), JSON-LD structured data | robots.txt, sitemap.xml, a preview picture for every page and post, BlogPosting JSON-LD | ✅ Done |
-| 7 | **Mutations**: Server Actions, `<Form>`, `useActionState`, `useOptimistic`, Zod validation, `updateTag` / `revalidateTag` / `refresh` | Comments and likes that persist | ⏳ |
+| 7 | **Mutations**: Server Actions, `<Form>`, `useActionState`, `useOptimistic`, Zod validation, `updateTag` / `revalidateTag` / `refresh` | Comments and likes that persist | ✅ Done |
 | 8 | **Route Handlers**: `route.ts`, HTTP methods, caching GET handlers, webhooks, BFF pattern | Public JSON API and RSS feed (moved here from Day 6) | ⏳ |
 | 9 | **Auth & Proxy**: `proxy.ts` (formerly middleware), cookies, sessions, Data Access Layer, protecting routes and actions | Login and an author dashboard | ⏳ |
 | 10 | **Advanced routing**: route groups, parallel routes (`@slot`), intercepting routes (modals), `searchParams` search and pagination | Dashboard with slots, post-preview modal, search | ⏳ |
@@ -46,3 +46,4 @@ npm run start   # serve the production build
 - [Day 4: Loading & Error UX](./day-04-loading-error.md)
 - [Day 5: SEO I, the Metadata API](./day-05-metadata.md)
 - [Day 6: SEO II, crawlers & share previews](./day-06-seo-crawlers.md)
+- [Day 7: Mutations, saving likes and comments](./day-07-mutations.md)

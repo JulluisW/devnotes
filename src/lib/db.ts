@@ -34,6 +34,15 @@ export type PostRow = {
   previousSlugs: string[];
 };
 
+// 📘 Day 7: a new table. Each row points at a post by slug.
+export type CommentRow = {
+  id: number;
+  postSlug: string;
+  name: string;
+  body: string;
+  createdAt: string; // ISO date + time
+};
+
 const authors: AuthorRow[] = [
   {
     id: 'maya',
@@ -153,6 +162,26 @@ Combine that with strict mode and you get a codebase where refactors are safe.`,
   },
 ];
 
+const comments: CommentRow[] = [
+  {
+    id: 1,
+    postSlug: 'why-server-components',
+    name: 'Rafael',
+    body: 'The "zero JS for server parts" point finally clicked for me.',
+    createdAt: '2026-10-29T09:15:00.000Z',
+  },
+  {
+    id: 2,
+    postSlug: 'why-server-components',
+    name: 'Sora',
+    body: 'Would love a follow-up on passing props across the boundary.',
+    createdAt: '2026-10-30T14:02:00.000Z',
+  },
+];
+
+// 📘 Day 7: the data lives in these arrays, in the server's memory. Writes survive
+// while the server process runs, and reset when you restart `npm run dev` or
+// `npm run start`. A real database would keep them.
 // ---------------------------------------------------------------------------
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -200,6 +229,41 @@ export const db = {
         300,
         () => posts.find((post) => post.previousSlugs.includes(slug)) ?? null,
       ),
+    // 📘 Day 7: our first WRITE. Watch the terminal: writes log [db] → / ← too.
+    // Returns the new count, or null if there's no such post.
+    incrementLikes: (slug: string) =>
+      query(`posts.incrementLikes("${slug}")`, 300, () => {
+        const post = posts.find((p) => p.slug === slug);
+        if (!post) return null;
+        post.likes += 1;
+        return post.likes;
+      }),
+  },
+  comments: {
+    findByPost: (postSlug: string) =>
+      query(`comments.findByPost("${postSlug}")`, 350, () =>
+        comments.filter((c) => c.postSlug === postSlug).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      ),
+    create: (data: Pick<CommentRow, 'postSlug' | 'name' | 'body'>) =>
+      query(`comments.create(${JSON.stringify({ postSlug: data.postSlug, name: data.name })})`, 500, () => {
+        const row: CommentRow = {
+          id: Math.max(0, ...comments.map((c) => c.id)) + 1,
+          createdAt: new Date().toISOString(),
+          ...data,
+        };
+        comments.push(row);
+        return row;
+      }),
+
+    // 📘 Day 7 homework #4. Arrow function WITHOUT braces, so it RETURNS the
+    // promise from query(). With `=> { query(...) }` nothing was returned, so
+    // `await db.comments.delete(id)` didn't wait, and the page re-render could
+    // read the comments before the delete had finished.
+    delete: (id: number) =>
+      query(`comments.delete(${id})`, 500, () => {
+        const index = comments.findIndex((c) => c.id === id);
+        if (index !== -1) comments.splice(index, 1);
+      }),
   },
   authors: {
     findMany: () => query('authors.findMany()', 300, () => authors),

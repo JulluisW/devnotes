@@ -4,9 +4,10 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { AuthorCard } from '@/components/author-card';
+import { Comments } from '@/components/comments';
 import { LikeButton } from '@/components/like-button';
 import { RelatedPosts } from '@/components/related-posts';
-import { AuthorCardSkeleton, PostSkeleton } from '@/components/skeletons';
+import { AuthorCardSkeleton, LinkListSkeleton, PostSkeleton } from '@/components/skeletons';
 import Link from 'next/link';
 import { getAuthor } from '@/data/authors';
 import { getPostBySlug, getPublishedPosts, getRenamedPostSlug, type PostDetail } from '@/data/posts';
@@ -145,8 +146,9 @@ async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'
       </div>
 
       {/* 📘 A Client Component island inside a Server Component page.
-          Only this button's JS is sent to the browser. */}
-      <LikeButton initialLikes={post.likes} />
+          Only this button's JS is sent to the browser.
+          📘 Day 7: it now gets the slug (WHICH post to like), and the count. */}
+      <LikeButton slug={post.slug} likes={post.likes} />
 
       {/* 📘 Day 2: SEQUENTIAL data. We can only fetch the author AFTER we know
           post.authorId. That dependency is unavoidable, but it doesn't have to
@@ -158,6 +160,12 @@ async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'
 
       <Suspense fallback={null}>
         <RelatedPosts slug={post.slug} />
+      </Suspense>
+
+      {/* 📘 Day 7: comments have their own cache entry (tag `comments:<slug>`)
+          and their own <Suspense>, so the article never waits for them. */}
+      <Suspense fallback={<LinkListSkeleton count={2} />}>
+        <Comments slug={post.slug} />
       </Suspense>
 
       {/* 📘 Day 6: it needs the author's name, so it waits for getAuthor. It has
