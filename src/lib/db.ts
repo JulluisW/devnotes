@@ -43,7 +43,7 @@ export type CommentRow = {
   createdAt: string; // ISO date + time
 };
 
-const authors: AuthorRow[] = [
+const seedAuthors: AuthorRow[] = [
   {
     id: 'maya',
     name: 'Maya Chen',
@@ -70,7 +70,7 @@ const authors: AuthorRow[] = [
   },
 ];
 
-const posts: PostRow[] = [
+const seedPosts: PostRow[] = [
   {
     id: 1,
     slug: 'why-server-components',
@@ -162,7 +162,7 @@ Combine that with strict mode and you get a codebase where refactors are safe.`,
   },
 ];
 
-const comments: CommentRow[] = [
+const seedComments: CommentRow[] = [
   {
     id: 1,
     postSlug: 'why-server-components',
@@ -182,6 +182,18 @@ const comments: CommentRow[] = [
 // 📘 Day 7: the data lives in these arrays, in the server's memory. Writes survive
 // while the server process runs, and reset when you restart `npm run dev` or
 // `npm run start`. A real database would keep them.
+//
+// 📘 Day 8: ONE copy for the whole server, kept on `globalThis`.
+// Next.js bundles route handlers (app/**/route.ts) separately from pages, and
+// each bundle runs its own copy of this file. With plain `const posts = [...]`,
+// the CMS webhook (a route handler) changed ITS copy of the posts, and the pages
+// kept reading THEIR copy with the old title (measured). globalThis is shared by
+// everything in the server process, so now there's one copy.
+// A real database doesn't have this problem: it's a separate server everyone talks to.
+type Store = { authors: AuthorRow[]; posts: PostRow[]; comments: CommentRow[] };
+const globalStore = globalThis as typeof globalThis & { __devnotesDb?: Store };
+globalStore.__devnotesDb ??= { authors: seedAuthors, posts: seedPosts, comments: seedComments };
+const { authors, posts, comments } = globalStore.__devnotesDb;
 // ---------------------------------------------------------------------------
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -229,6 +241,15 @@ export const db = {
         300,
         () => posts.find((post) => post.previousSlugs.includes(slug)) ?? null,
       ),
+    // 📘 Day 8: used by the CMS webhook (app/api/webhooks/cms/route.ts) when an
+    // editor changes a post's title or excerpt in the "CMS".
+    update: (slug: string, data: Partial<Pick<PostRow, 'title' | 'excerpt'>>) =>
+      query(`posts.update("${slug}", ${JSON.stringify(Object.keys(data))})`, 400, () => {
+        const post = posts.find((p) => p.slug === slug);
+        if (!post) return null;
+        Object.assign(post, data);
+        return post;
+      }),
     // 📘 Day 7: our first WRITE. Watch the terminal: writes log [db] → / ← too.
     // Returns the new count, or null if there's no such post.
     incrementLikes: (slug: string) =>

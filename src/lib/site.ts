@@ -33,6 +33,15 @@ export const baseOpenGraph = {
   images: [{ url: '/opengraph-image', ...ogImageSize, alt: `${site.name}: learn Next.js by building it` }],
 } satisfies Metadata['openGraph'];
 
+// 📘 Day 8: tells feed readers "this site has an RSS feed at /feed.xml".
+// Output: <link rel="alternate" type="application/rss+xml" title="DevNotes" href="…/feed.xml">
+// Used in `alternates.types` on the home page and /posts, the pages people paste
+// into a feed reader. (Not in the layout: every page sets its own `alternates`,
+// which REPLACES the layout's, the same trap as openGraph on Day 5.)
+export const rssAlternate = {
+  'application/rss+xml': [{ url: '/feed.xml', title: site.name }],
+} satisfies NonNullable<Metadata['alternates']>['types'];
+
 // 📘 Day 6: turns a path like "/posts/x" into a full URL like
 // "http://localhost:3005/posts/x". sitemap.xml and JSON-LD need full URLs, and
 // metadataBase (Day 5) only works inside `metadata` objects, so they use this.

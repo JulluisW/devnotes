@@ -24,14 +24,14 @@ import { PostListSkeleton } from '@/components/skeletons';
 import { WidgetBoundary } from '@/components/widget-boundary';
 import { getPublishedPosts, getTrendingPosts } from '@/data/posts';
 import { getLiveStats } from '@/data/stats';
-import { baseOpenGraph } from '@/lib/site';
+import { baseOpenGraph, rssAlternate } from '@/lib/site';
 
 // 📘 Day 5: no `title` here, so the home page uses the layout's default title.
 // The page only adds its own address (canonical and og:url).
 // `...baseOpenGraph` is needed because this openGraph object replaces the
 // layout's one completely, including its `type`.
 export const metadata: Metadata = {
-  alternates: { canonical: '/' },
+  alternates: { canonical: '/' , types: rssAlternate }, // 📘 Day 8: points feed readers to /feed.xml
   openGraph: { ...baseOpenGraph, type: 'website', url: '/' },
 };
 

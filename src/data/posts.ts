@@ -151,3 +151,20 @@ export async function likePost(slug: string): Promise<number | null> {
   if (!post || post.status !== 'published') return null;
   return db.posts.incrementLikes(slug);
 }
+
+// 📘 Day 8: a write that comes from OUTSIDE the site (the CMS webhook), not from
+// a visitor. Returns false if there's no such post (drafts are allowed here:
+// editors work on drafts in the CMS too).
+//
+// ⚠️ Trap we hit (measured): the webhook sent only a title, but zod's .optional()
+// still gives `{ title: '…', excerpt: undefined }`. Passing that straight to the
+// DB wiped the excerpt (Object.assign copies `undefined` too), and the RSS feed
+// then crashed on the missing excerpt. So: copy only the fields that were sent.
+export async function updatePostFromCms(slug: string, data: { title?: string; excerpt?: string }): Promise<boolean> {
+  const changes: { title?: string; excerpt?: string } = {};
+  if (data.title !== undefined) changes.title = data.title;
+  if (data.excerpt !== undefined) changes.excerpt = data.excerpt;
+
+  const post = await db.posts.update(slug, changes);
+  return post !== null;
+}
