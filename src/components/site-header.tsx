@@ -16,6 +16,11 @@ export function SiteHeader() {
           <NavLink href="/posts">Posts</NavLink>
           <NavLink href="/authors">Authors</NavLink>
           <NavLink href="/about">About</NavLink>
+          {/* 📘 Day 9: a plain link, the same for everyone. The header is in the root
+              layout, so reading the cookie here ("Hi Maya" / "Log in") would make
+              EVERY page depend on the visitor, and none could be made at build time.
+              proxy.ts sends logged-out visitors from /dashboard to /login. */}
+          <NavLink href="/dashboard">Dashboard</NavLink>
         </nav>
       </div>
     </header>

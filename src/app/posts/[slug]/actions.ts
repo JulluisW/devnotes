@@ -18,6 +18,7 @@
 
 import { updateTag } from 'next/cache';
 import { z } from 'zod';
+import { requireUser } from '@/data/auth';
 import { createComment, deleteComment } from '@/data/comments';
 import { likePost } from '@/data/posts';
 
@@ -116,10 +117,14 @@ export async function deleteCommentAction(slug: string, id: number): Promise<voi
   const parsed = deleteCommentSchema.safeParse({ slug, id });
   if (!parsed.success) return;
 
-  // ⚠️ No "who's allowed?" check yet: ANYONE who can send a POST can delete ANY
-  // comment, even without opening the page. Day 9 adds the check here.
-  const deleted = await deleteComment(parsed.data.slug, parsed.data.id);
-  if (!deleted) return;
+  // 📘 Day 9: two checks, at two levels:
+  //   1. here: logged in at all? If not → redirect to /login.
+  //   2. in the DAL (deleteComment): is this user the post's author?
+  // The button only appears on the author's dashboard, but that's just UI.
+  // Anyone can still send this POST by hand, so the checks must be HERE.
+  await requireUser();
+  const result = await deleteComment(parsed.data.slug, parsed.data.id);
+  if (result !== 'deleted') return;
 
   // 📘 The comment list is cached by getComments, under `comments:<slug>`.
   // (`post:<slug>` is the ARTICLE's tag: it would refetch the post, not the comments.)

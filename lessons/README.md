@@ -23,7 +23,7 @@
 | 6 | **SEO II: crawlers & rich results**: `robots.ts`, `sitemap.ts`, dynamic OG images (`opengraph-image` + `ImageResponse`), JSON-LD structured data | robots.txt, sitemap.xml, a preview picture for every page and post, BlogPosting JSON-LD | ✅ Done |
 | 7 | **Mutations**: Server Actions, `<Form>`, `useActionState`, `useOptimistic`, Zod validation, `updateTag` / `revalidateTag` / `refresh` | Comments and likes that persist | ✅ Done |
 | 8 | **Route Handlers**: `route.ts`, HTTP methods, caching GET handlers, webhooks, BFF pattern | Public JSON API and RSS feed (moved here from Day 6) | ✅ Done |
-| 9 | **Auth & Proxy**: `proxy.ts` (formerly middleware), cookies, sessions, Data Access Layer, protecting routes and actions | Login and an author dashboard | ⏳ |
+| 9 | **Auth & Proxy**: `proxy.ts` (formerly middleware), cookies, sessions, Data Access Layer, protecting routes and actions | Login and an author dashboard | ✅ Done |
 | 10 | **Advanced routing**: route groups, parallel routes (`@slot`), intercepting routes (modals), `searchParams` search and pagination | Dashboard with slots, post-preview modal, search | ⏳ |
 | 11 | **Performance**: `next/image`, `next/font`, `next/script`, lazy loading, prefetching, View Transitions, bundle analysis | Fast Core Web Vitals | ⏳ |
 | 12 | **Production**: env vars, `instrumentation.ts`, testing (Vitest + Playwright), deployment, production checklist | Ship-ready app | ⏳ |
@@ -48,3 +48,4 @@ npm run start   # serve the production build
 - [Day 6: SEO II, crawlers & share previews](./day-06-seo-crawlers.md)
 - [Day 7: Mutations, saving likes and comments](./day-07-mutations.md)
 - [Day 8: Route Handlers, API, RSS and webhooks](./day-08-route-handlers.md)
+- [Day 9: Auth & Proxy, logins and private pages](./day-09-auth-proxy.md)

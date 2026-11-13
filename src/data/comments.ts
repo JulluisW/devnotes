@@ -3,6 +3,7 @@
 import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 import { db } from '@/lib/db';
+import { getCurrentUser } from './auth';
 
 export type Comment = {
   id: number;
@@ -30,11 +31,18 @@ export async function createComment(slug: string, input: { name: string; body: s
   return true;
 }
 
-// 📘 Day 7 homework #4. Only deletes the comment if it belongs to THIS post,
-// so a POST with a mismatched slug + id can't delete a comment on another post.
-export async function deleteComment(postSlug: string, id: number): Promise<boolean> {
+// 📘 Day 7 homework #4 + Day 9: the "who's allowed?" rule lives HERE, next to
+// the data, not in the button or the page. Only the post's AUTHOR may delete
+// comments on it. Even if some page forgets to check, this function doesn't.
+//   'forbidden' → not logged in, or not this post's author
+//   'not-found' → no such comment on this post
+export async function deleteComment(postSlug: string, id: number): Promise<'deleted' | 'forbidden' | 'not-found'> {
+  const user = await getCurrentUser();
+  const post = await db.posts.findBySlug(postSlug);
+  if (!user || !post || post.authorId !== user.id) return 'forbidden';
+
   const comments = await db.comments.findByPost(postSlug);
-  if (!comments.some((c) => c.id === id)) return false;
+  if (!comments.some((c) => c.id === id)) return 'not-found';
   await db.comments.delete(id);
-  return true;
+  return 'deleted';
 }

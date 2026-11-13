@@ -7,11 +7,13 @@
 // because only the Data Access Layer (src/data) is allowed to import it.
 import 'server-only';
 import { chaos } from './chaos';
+import { hashPassword } from './password';
 
 export type AuthorRow = {
   id: string;
   name: string;
   email: string; // 🔒 private
+  passwordHash: string; // 🔒 private (Day 9). Never leaves the DAL.
   bio: string;
   role: string;
   joinedAt: string;
@@ -43,11 +45,27 @@ export type CommentRow = {
   createdAt: string; // ISO date + time
 };
 
+// 📘 Day 9: demo logins. All three authors use the password below.
+// Log in at /login with maya@devnotes.internal, rafael@devnotes.internal or
+// sora@devnotes.internal. (A real app never has a password in the code. Users
+// choose their own at sign-up, and only the hash is saved.)
+export const DEMO_PASSWORD = 'devnotes-demo';
+const demoHash = hashPassword(DEMO_PASSWORD);
+
+// 📘 Day 9: a login session. The browser's cookie holds only `id`, a long
+// random string. Everything else stays here on the server.
+export type SessionRow = {
+  id: string;
+  userId: string; // an author id
+  expiresAt: string; // ISO date + time
+};
+
 const seedAuthors: AuthorRow[] = [
   {
     id: 'maya',
     name: 'Maya Chen',
     email: 'maya@devnotes.internal',
+    passwordHash: demoHash,
     bio: 'Writes about React internals and the server/client boundary.',
     role: 'Staff Engineer',
     joinedAt: '2025-03-12',
@@ -56,6 +74,7 @@ const seedAuthors: AuthorRow[] = [
     id: 'rafael',
     name: 'Rafael Ortiz',
     email: 'rafael@devnotes.internal',
+    passwordHash: demoHash,
     bio: 'Routing nerd. Believes every URL deserves a good layout.',
     role: 'Frontend Lead',
     joinedAt: '2025-07-01',
@@ -64,6 +83,7 @@ const seedAuthors: AuthorRow[] = [
     id: 'sora',
     name: 'Sora Tanaka',
     email: 'sora@devnotes.internal',
+    passwordHash: demoHash,
     bio: 'TypeScript enthusiast who turns runtime bugs into compile errors.',
     role: 'Senior Engineer',
     joinedAt: '2026-01-20',
@@ -190,10 +210,10 @@ const seedComments: CommentRow[] = [
 // kept reading THEIR copy with the old title (measured). globalThis is shared by
 // everything in the server process, so now there's one copy.
 // A real database doesn't have this problem: it's a separate server everyone talks to.
-type Store = { authors: AuthorRow[]; posts: PostRow[]; comments: CommentRow[] };
+type Store = { authors: AuthorRow[]; posts: PostRow[]; comments: CommentRow[]; sessions: SessionRow[] };
 const globalStore = globalThis as typeof globalThis & { __devnotesDb?: Store };
-globalStore.__devnotesDb ??= { authors: seedAuthors, posts: seedPosts, comments: seedComments };
-const { authors, posts, comments } = globalStore.__devnotesDb;
+globalStore.__devnotesDb ??= { authors: seedAuthors, posts: seedPosts, comments: seedComments, sessions: [] };
+const { authors, posts, comments, sessions } = globalStore.__devnotesDb;
 // ---------------------------------------------------------------------------
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -261,6 +281,11 @@ export const db = {
       }),
   },
   comments: {
+    // 📘 Day 9: all comments on a list of posts (the author dashboard).
+    findByPosts: (postSlugs: string[]) =>
+      query(`comments.findByPosts(${postSlugs.length} posts)`, 350, () =>
+        comments.filter((c) => postSlugs.includes(c.postSlug)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      ),
     findByPost: (postSlug: string) =>
       query(`comments.findByPost("${postSlug}")`, 350, () =>
         comments.filter((c) => c.postSlug === postSlug).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -290,5 +315,23 @@ export const db = {
     findMany: () => query('authors.findMany()', 300, () => authors),
     findById: (id: string) =>
       query(`authors.findById("${id}")`, 500, () => authors.find((author) => author.id === id) ?? null),
+    // 📘 Day 9: for login. Emails are compared in lowercase.
+    findByEmail: (email: string) =>
+      query('authors.findByEmail(…)', 300, () => authors.find((a) => a.email === email.toLowerCase()) ?? null),
+  },
+  // 📘 Day 9: the sessions table. Logging out deletes the row, so a stolen
+  // cookie stops working right away (the server no longer knows that id).
+  sessions: {
+    create: (row: SessionRow) =>
+      query('sessions.create(…)', 100, () => {
+        sessions.push(row);
+        return row;
+      }),
+    findById: (id: string) => query('sessions.findById(…)', 100, () => sessions.find((s) => s.id === id) ?? null),
+    delete: (id: string) =>
+      query('sessions.delete(…)', 100, () => {
+        const index = sessions.findIndex((s) => s.id === id);
+        if (index !== -1) sessions.splice(index, 1);
+      }),
   },
 };
