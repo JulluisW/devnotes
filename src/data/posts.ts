@@ -168,3 +168,41 @@ export async function updatePostFromCms(slug: string, data: { title?: string; ex
   const post = await db.posts.update(slug, changes);
   return post !== null;
 }
+
+// 📘 Day 10: SEARCH + PAGINATION for /search?q=…&page=…
+// The page reads q and page from the URL, cleans them, and passes them in here.
+// 'use cache' keys the result on the ARGUMENTS, so "Cache", " cache " and
+// "cache" would be 3 entries unless the caller cleans them first (it does:
+// see src/app/search/search-params.ts).
+export const SEARCH_PAGE_SIZE = 2;
+
+export type SearchResult = {
+  posts: PostSummary[];
+  total: number; // matches across ALL pages
+  page: number; // the page actually shown (out-of-range numbers are clamped)
+  pageCount: number;
+};
+
+export async function searchPosts(query: string, page: number): Promise<SearchResult> {
+  'use cache';
+  cacheLife('blog');
+  cacheTag('posts');
+
+  const all = await findSummaries();
+  const matches = query
+    ? all.filter((post) =>
+        [post.title, post.excerpt, post.author.name, ...post.tags].some((text) => text.toLowerCase().includes(query)),
+      )
+    : all; // empty search = browse everything
+
+  const pageCount = Math.max(1, Math.ceil(matches.length / SEARCH_PAGE_SIZE));
+  const current = Math.min(page, pageCount); // ?page=99 → the last page
+  const start = (current - 1) * SEARCH_PAGE_SIZE;
+
+  return {
+    posts: matches.slice(start, start + SEARCH_PAGE_SIZE),
+    total: matches.length,
+    page: current,
+    pageCount,
+  };
+}

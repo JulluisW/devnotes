@@ -3,22 +3,23 @@
 //   - with Cache Components, anything that reads cookies must sit inside
 //     <Suspense>. Without it, `next build` fails.
 // The heading and the boundary's fallback are the static shell (instant),
-// and <Dashboard> streams in per request. The build table shows ◐.
+// and <MyPosts> streams in per request. The build table shows ◐.
 //
 // 📘 Three layers protect this page (Day 9 "defense in depth"):
 //   1. proxy.ts: no session cookie at all → redirect to /login before rendering
 //   2. getMyDashboard() → requireUser(): cookie present but invalid/expired → /login
 //   3. the DAL only returns THIS user's posts and comments
+//
+// 📘 Day 10: this file moved into the (overview) route group, and the comments
+// moved to their own slot (@comments). The URL is still /dashboard and
+// proxy.ts didn't change: route groups and slots never change URLs.
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { deleteCommentAction } from '@/app/posts/[slug]/actions';
 import { logoutAction } from '@/app/login/actions';
-import { DeleteButton } from '@/components/delete-button';
 import { PostListSkeleton } from '@/components/skeletons';
 import { getCurrentUser } from '@/data/auth';
 import { getMyDashboard } from '@/data/dashboard';
-import { formatDate } from '@/lib/format';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -27,17 +28,22 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+    <>
+      <div className="flex items-baseline justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <Link href="/dashboard/settings" className="text-sm text-blue-600 hover:underline">
+          Settings
+        </Link>
+      </div>
       <Suspense fallback={<PostListSkeleton count={2} />}>
-        <Dashboard />
+        <MyPosts />
       </Suspense>
-    </div>
+    </>
   );
 }
 
-async function Dashboard() {
-  const { posts, comments } = await getMyDashboard(); // redirects to /login if not logged in
+async function MyPosts() {
+  const { posts } = await getMyDashboard(); // redirects to /login if not logged in
   const user = await getCurrentUser(); // React.cache: no second session lookup
 
   return (
@@ -75,30 +81,6 @@ async function Dashboard() {
             </li>
           ))}
         </ul>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-xl font-semibold">Comments on your posts</h2>
-        {comments.length === 0 ? (
-          <p className="text-sm text-foreground/50">No comments yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {comments.map((comment) => (
-              // 📘 Day 7 homework #4: fades while its DeleteButton is pending.
-              <li key={comment.id} className="rounded-lg border border-foreground/10 p-4 transition-opacity has-data-pending:opacity-30">
-                <p className="text-sm">
-                  <span className="font-medium">{comment.name}</span>
-                  <span className="text-foreground/50">
-                    {' '}
-                    on “{comment.postTitle}” · {formatDate(comment.createdAt)}
-                  </span>
-                </p>
-                <p className="mt-2 whitespace-pre-line text-sm text-foreground/80">{comment.body}</p>
-                <DeleteButton deleteAction={deleteCommentAction.bind(null, comment.postSlug, comment.id)} />
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
     </>
   );

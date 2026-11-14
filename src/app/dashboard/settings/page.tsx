@@ -5,7 +5,11 @@
 // Same shape as the dashboard: a static heading (instant) + <Suspense> around
 // the part that reads the cookie. Without the <Suspense>, `next build` fails
 // (Cache Components: cookies read outside a boundary).
+//
+// 📘 Day 10: this page is OUTSIDE the (overview) route group, so it doesn't get
+// the dashboard's slots (@stats, @comments). See dashboard/(overview)/layout.tsx.
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Suspense } from 'react';
 import { logoutAction } from '@/app/login/actions';
 import { PostListSkeleton } from '@/components/skeletons';
@@ -19,7 +23,12 @@ export const metadata: Metadata = {
 export default function SettingsPage() {
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+      <div className="flex items-baseline justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <Link href="/dashboard" className="text-sm text-blue-600 hover:underline">
+          ← Dashboard
+        </Link>
+      </div>
       <Suspense fallback={<PostListSkeleton count={1} />}>
         <Settings />
       </Suspense>

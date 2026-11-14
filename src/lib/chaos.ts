@@ -13,4 +13,6 @@ export const chaos = {
   analytics: 0,
   /** `db.posts.findBySlug`, the query behind the body of every post page. */
   postBySlug: 0,
+  /** Day 10: the numbers in the dashboard's @stats slot. Only that slot breaks. */
+  dashboardStats: 0,
 };

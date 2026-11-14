@@ -16,6 +16,8 @@ export function SiteHeader() {
           <NavLink href="/posts">Posts</NavLink>
           <NavLink href="/authors">Authors</NavLink>
           <NavLink href="/about">About</NavLink>
+          {/* 📘 Day 10: search + pagination via searchParams, with a preview modal. */}
+          <NavLink href="/search">Search</NavLink>
           {/* 📘 Day 9: a plain link, the same for everyone. The header is in the root
               layout, so reading the cookie here ("Hi Maya" / "Log in") would make
               EVERY page depend on the visitor, and none could be made at build time.
