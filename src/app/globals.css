@@ -24,3 +24,49 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* 📘 Day 11: VIEW TRANSITIONS. <ViewTransition share="morph"> gives the moving
+   post title the class "morph". These rules set how long the move takes. */
+::view-transition-group(.morph) {
+  animation-duration: 350ms;
+}
+
+/* Skeleton → content on the post page (Suspense reveal). The old part leaves
+   fast (150 ms), the new part arrives a bit slower, after the old one is gone. */
+::view-transition-old(.slide-down) {
+  animation:
+    150ms ease-out both fade reverse,
+    150ms ease-out both slide-y reverse;
+}
+::view-transition-new(.slide-up) {
+  animation:
+    210ms ease-in 150ms both fade,
+    400ms ease-in both slide-y;
+}
+@keyframes fade {
+  from {
+    filter: blur(3px);
+    opacity: 0;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-y {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Respect "reduce motion" (an OS accessibility setting): no animations at all. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

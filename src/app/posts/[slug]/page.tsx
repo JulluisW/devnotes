@@ -1,13 +1,14 @@
 // 📘 Day 1: [slug] is a DYNAMIC segment. /posts/anything matches this file,
 // and the matched value arrives in `params`.
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
+import { Suspense, ViewTransition } from 'react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { AuthorCard } from '@/components/author-card';
 import { Comments } from '@/components/comments';
 import { LikeButton } from '@/components/like-button';
 import { RelatedPosts } from '@/components/related-posts';
 import { AuthorCardSkeleton, LinkListSkeleton, PostSkeleton } from '@/components/skeletons';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getAuthor } from '@/data/authors';
 import { getPostBySlug, getPublishedPosts, getRenamedPostSlug, type PostDetail } from '@/data/posts';
@@ -108,8 +109,20 @@ export async function generateMetadata({ params }: PageProps<'/posts/[slug]'>): 
 // "static shell". (Day 3 covers this in depth.)
 export default function PostPage({ params }: PageProps<'/posts/[slug]'>) {
   return (
-    <Suspense fallback={<PostSkeleton />}>
-      <PostContent params={params} />
+    // 📘 Day 11: VIEW TRANSITIONS on a loading state. When the post arrives, the
+    // skeleton slides down and fades out, then the post slides up and fades in
+    // (CSS classes slide-down / slide-up in globals.css). Without this, the
+    // skeleton is swapped for the content in one jump.
+    <Suspense
+      fallback={
+        <ViewTransition exit="slide-down" default="none">
+          <PostSkeleton />
+        </ViewTransition>
+      }
+    >
+      <ViewTransition enter="slide-up" default="none">
+        <PostContent params={params} />
+      </ViewTransition>
     </Suspense>
   );
 }
@@ -123,9 +136,31 @@ async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'
 
   return (
     <article className="space-y-8">
+      {/* 📘 Day 11: the biggest thing on screen when the page opens, so the browser
+          reports it as the LCP (Largest Contentful Paint: "when did the main
+          content appear?"). Two changes from the defaults:
+            loading="eager"      don't wait until it's scrolled into view
+            fetchPriority="high" download it before less important files
+          `sizes` says how wide it's SHOWN (the main column, ~640 px on desktop,
+          the full screen on phones), so the browser picks a small enough copy. */}
+      <Image
+        src={post.cover}
+        alt=""
+        width={1600}
+        height={900}
+        sizes="(min-width: 768px) 640px, 100vw"
+        loading="eager"
+        fetchPriority="high"
+        className="aspect-video w-full rounded-xl object-cover"
+      />
       <header>
         <p className="text-sm text-foreground/50">{formatDate(post.publishedAt)}</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">{post.title}</h1>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight">
+          {/* 📘 Day 11: same name as the title in <PostCard> → the title moves here. */}
+          <ViewTransition name={`post-title-${post.slug}`} share="morph" default="none">
+            <span className="inline-block">{post.title}</span>
+          </ViewTransition>
+        </h1>
         {/* 📘 Day 4 homework #6: this post's tags are already in `post.tags`.
             No extra query, no promise, no Suspense, no Client Component. */}
         <ul className="mt-3 flex flex-wrap gap-2">

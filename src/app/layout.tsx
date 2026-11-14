@@ -3,7 +3,9 @@
 // re-renders when you navigate between pages.
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { SiteHeader } from "@/components/site-header";
+import { WebVitals } from "@/components/web-vitals";
 import { baseOpenGraph, site } from "@/lib/site";
 import "./globals.css";
 
@@ -76,6 +78,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="border-t border-foreground/10 py-6 text-center text-xs text-foreground/50">
           Built while learning Next.js 16 · DevNotes
         </footer>
+        {/* 📘 Day 11: logs LCP, CLS and INP to the browser console. */}
+        <WebVitals />
+        {/* 📘 Day 11: next/script. strategy="lazyOnload" = download this file only
+            after the page has loaded, when the browser is idle. Good for scripts
+            that don't help the visitor see the page (analytics, chat widgets).
+            The default, "afterInteractive", loads it a bit earlier. */}
+        <Script src="/scripts/page-views.js" strategy="lazyOnload" />
       </body>
     </html>
   );

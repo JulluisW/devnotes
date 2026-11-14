@@ -24,6 +24,7 @@ export type PostSummary = {
   slug: string;
   title: string;
   excerpt: string;
+  cover: string; // 📘 Day 11
   publishedAt: string;
   tags: string[];
   author: { id: string; name: string };
@@ -41,6 +42,7 @@ function toSummary(post: PostRow, authors: AuthorRow[]): PostSummary {
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt,
+    cover: post.cover,
     publishedAt: post.publishedAt,
     tags: post.tags,
     author: { id: post.authorId, name: author?.name ?? 'Unknown author' },
@@ -123,6 +125,7 @@ export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
     title: post.title,
     excerpt: post.excerpt,
     content: post.content,
+    cover: post.cover,
     publishedAt: post.publishedAt,
     tags: post.tags,
     likes: post.likes,

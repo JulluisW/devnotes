@@ -8,7 +8,7 @@
 // streams in its own <Suspense> boundary.
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { Scratchpad } from '@/components/scratchpad';
+import { LazyScratchpad } from '@/components/scratchpad-lazy';
 import { LinkListSkeleton } from '@/components/skeletons';
 import { getPublishedPosts } from '@/data/posts';
 
@@ -24,7 +24,8 @@ export default function PostsLayout({ children }: LayoutProps<'/posts'>) {
             <PostLinks />
           </Suspense>
         </nav>
-        <Scratchpad />
+        {/* 📘 Day 11: loaded with next/dynamic, browser only (see scratchpad-lazy.tsx). */}
+        <LazyScratchpad />
       </aside>
     </div>
   );

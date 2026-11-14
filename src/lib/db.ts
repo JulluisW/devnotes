@@ -25,6 +25,8 @@ export type PostRow = {
   title: string;
   excerpt: string;
   content: string;
+  // 📘 Day 11: a picture in public/covers/. Its real size is 1600×900 (see next/image).
+  cover: string;
   authorId: string;
   publishedAt: string;
   tags: string[];
@@ -94,6 +96,7 @@ const seedPosts: PostRow[] = [
   {
     id: 1,
     slug: 'why-server-components',
+    cover: '/covers/why-server-components.jpg',
     title: 'Why Server Components Changed Everything',
     excerpt:
       'Server Components let you fetch data and render UI on the server, shipping zero JavaScript for them to the browser.',
@@ -113,6 +116,7 @@ You opt into interactivity with the "use client" directive, only where you need 
   {
     id: 2,
     slug: 'file-based-routing',
+    cover: '/covers/file-based-routing.jpg',
     title: 'File-Based Routing in the App Router',
     excerpt: 'Folders define URL segments. Special files like page.tsx and layout.tsx define the UI for each segment.',
     content: `In the App Router, the folder structure inside app/ IS your URL structure.
@@ -131,6 +135,7 @@ Square brackets, like [slug], create dynamic segments whose value you read from 
   {
     id: 3,
     slug: 'layouts-that-persist',
+    cover: '/covers/layouts-that-persist.jpg',
     title: 'Layouts That Persist',
     excerpt:
       "Layouts don't re-render on navigation. That means their state survives while the page inside them changes.",
@@ -150,6 +155,7 @@ This is called partial rendering, and it's one of the reasons App Router navigat
   {
     id: 4,
     slug: 'typescript-with-nextjs',
+    cover: '/covers/typescript-with-nextjs.jpg',
     title: 'Getting the Most Out of TypeScript in Next.js',
     excerpt:
       'Typed routes, generated PageProps/LayoutProps helpers, and strict mode catch bugs before they reach production.',
@@ -169,6 +175,7 @@ Combine that with strict mode and you get a codebase where refactors are safe.`,
   {
     id: 5,
     slug: 'data-access-layer',
+    cover: '/covers/data-access-layer.jpg',
     title: 'Designing a Data Access Layer',
     excerpt: 'Keep your database behind a small, server-only module that returns safe DTOs.',
     content: `This post is still being written.`,
