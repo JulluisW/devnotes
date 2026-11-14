@@ -26,7 +26,7 @@
 | 9 | **Auth & Proxy**: `proxy.ts` (formerly middleware), cookies, sessions, Data Access Layer, protecting routes and actions | Login and an author dashboard | ✅ Done |
 | 10 | **Advanced routing**: route groups, parallel routes (`@slot`), intercepting routes (modals), `searchParams` search and pagination | Dashboard with slots, post-preview modal, search | ✅ Done |
 | 11 | **Performance**: `next/image`, `next/font`, `next/script`, lazy loading, prefetching, View Transitions, bundle analysis | Fast Core Web Vitals | ✅ Done |
-| 12 | **Production**: env vars, `instrumentation.ts`, testing (Vitest + Playwright), deployment, production checklist | Ship-ready app | ⏳ |
+| 12 | **Production**: env vars, `instrumentation.ts`, testing (Vitest + Playwright), deployment, production checklist | Ship-ready app | 📝 Homework open |
 
 ## Running the app
 
@@ -34,6 +34,8 @@
 npm run dev     # development server at http://localhost:3000
 npm run build   # production build (shows which routes are static vs dynamic)
 npm run start   # serve the production build
+npm test        # unit tests (Vitest), Day 12
+npm run test:e2e  # build + browser tests (Playwright), Day 12. Stop other servers using .next first
 ```
 
 > 💡 Run `npm run build` often while learning. Its route table shows how Next.js decided to render each route, and that's the fastest way to build intuition.
@@ -51,3 +53,4 @@ npm run start   # serve the production build
 - [Day 9: Auth & Proxy, logins and private pages](./day-09-auth-proxy.md)
 - [Day 10: Advanced routing, groups, slots, modals and search](./day-10-advanced-routing.md)
 - [Day 11: Performance, images, fonts, scripts, lazy loading](./day-11-performance.md)
+- [Day 12: Production, settings, monitoring, tests, shipping](./day-12-production.md)

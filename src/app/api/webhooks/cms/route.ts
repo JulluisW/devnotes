@@ -12,6 +12,7 @@ import { revalidateTag } from 'next/cache';
 import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { updatePostFromCms } from '@/data/posts';
+import { env } from '@/lib/env';
 
 const payloadSchema = z.object({
   event: z.literal('post.updated'),
@@ -25,9 +26,9 @@ const payloadSchema = z.object({
 // timingSafeEqual compares in constant time, so an attacker can't guess the
 // secret letter by letter from how long the comparison takes.
 function hasValidSecret(request: Request): boolean {
-  const expected = process.env.CMS_WEBHOOK_SECRET;
+  const expected = env.CMS_WEBHOOK_SECRET; // 📘 Day 12: always set (checked at startup)
   const received = request.headers.get('x-webhook-secret');
-  if (!expected || !received) return false;
+  if (!received) return false;
   const a = Buffer.from(received);
   const b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);

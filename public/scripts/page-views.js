@@ -7,6 +7,6 @@
   try {
     count = Number(sessionStorage.getItem(key) || 0) + 1;
     sessionStorage.setItem(key, String(count));
-  } catch (e) {}
+  } catch {}
   console.log('[page-views] script ran ' + Math.round(performance.now()) + ' ms after the page started loading. Full page loads this session: ' + count);
 })();

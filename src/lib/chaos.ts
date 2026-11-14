@@ -13,6 +13,8 @@ export const chaos = {
   analytics: 0,
   /** `db.posts.findBySlug`, the query behind the body of every post page. */
   postBySlug: 0,
-  /** Day 10: the numbers in the dashboard's @stats slot. Only that slot breaks. */
-  dashboardStats: 0,
+  /** Day 10: the numbers in the dashboard's @stats slot. Only that slot breaks.
+   *  Day 12: can also be set without editing code: CHAOS_DASHBOARD_STATS=1 npx next start
+   *  (it's read when a request runs, not at build time, so no rebuild is needed). */
+  dashboardStats: Number(process.env.CHAOS_DASHBOARD_STATS ?? 0),
 };

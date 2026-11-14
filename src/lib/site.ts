@@ -2,6 +2,7 @@
 // Keeping them in one place means every page uses the same name, address and
 // language.
 import type { Metadata } from 'next';
+import { env } from './env';
 
 export const site = {
   name: 'DevNotes',
@@ -9,8 +10,8 @@ export const site = {
   // 📘 The public address of the site. It's used to build the full URLs in the
   // canonical and og:url tags. In production this would be https://devnotes.dev.
   // It's read when you run `next build`, so set SITE_URL before building.
-  // (Day 12 covers environment variables.)
-  url: process.env.SITE_URL ?? 'http://localhost:3005',
+  // 📘 Day 12: comes from the checked `env` object now (src/lib/env.ts).
+  url: env.SITE_URL,
   locale: 'en_US',
 };
 

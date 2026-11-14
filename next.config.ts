@@ -1,6 +1,24 @@
 import type { NextConfig } from 'next';
 
+// 📘 Day 12: SECURITY HEADERS, added to every response. Each one turns off a
+// browser feature that attackers can misuse and DevNotes doesn't need.
+const securityHeaders = [
+  // Don't let the browser guess file types (a "picture" can't run as a script).
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  // Don't let other sites show DevNotes inside an <iframe> (fake-button tricks).
+  { key: 'X-Frame-Options', value: 'DENY' },
+  // When a visitor clicks a link to another site, only send our domain, not the full URL.
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  // DevNotes never uses the camera, microphone or location. Say so.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+];
+
 const nextConfig: NextConfig = {
+  // 📘 Day 12: don't advertise "X-Powered-By: Next.js" (no need to tell attackers).
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: '/:path*', headers: securityHeaders }];
+  },
   // 📘 Day 1: typed <Link href> and router.push(). Typos in URLs become compile errors.
   typedRoutes: true,
   cacheComponents: true,
