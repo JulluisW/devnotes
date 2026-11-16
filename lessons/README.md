@@ -54,3 +54,4 @@ npm run test:e2e  # build + browser tests (Playwright), Day 12. Stop other serve
 - [Day 10: Advanced routing, groups, slots, modals and search](./day-10-advanced-routing.md)
 - [Day 11: Performance, images, fonts, scripts, lazy loading](./day-11-performance.md)
 - [Day 12: Production, settings, monitoring, tests, shipping](./day-12-production.md)
+- [🎓 Course summary: core words, every day's key idea, your weak points, first-project checklist](./course-summary.md)
