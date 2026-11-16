@@ -45,13 +45,17 @@ export function PostCard({ post }: { post: PostSummary }) {
           No `preload` here: these cards are below the fold, so the default
           loading="lazy" is right. They only download when you scroll near them.
           alt="" because the picture is decorative (the title is right next to it). */}
-      <Image
-        src={post.cover}
-        alt=""
-        width={160}
-        height={90}
-        className="hidden h-[90px] w-[160px] shrink-0 rounded-md object-cover sm:block"
-      />
+      {/* 📘 Day 11 homework #3 (Luis): the cover image morphs into the post page's
+          cover (same name there), just like the title. */}
+      <ViewTransition name={`post-cover-${post.slug}`} share="morph" default="none">
+        <Image
+          src={post.cover}
+          alt=""
+          width={160}
+          height={90}
+          className="hidden h-[90px] w-[160px] shrink-0 rounded-md object-cover sm:block"
+        />
+      </ViewTransition>
     </article>
   );
 }

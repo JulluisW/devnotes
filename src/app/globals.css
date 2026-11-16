@@ -19,6 +19,15 @@
   }
 }
 
+/* 📘 Day 11 homework review (CLS): always keep room for the scrollbar.
+   Measured without it: the page was short at first (no scrollbar), then the post
+   streamed in, a scrollbar appeared, the window got 15 px narrower, and the whole
+   centered layout (header + main) moved 7 px to the left. With a stable gutter,
+   the width never changes. (Phones use overlay scrollbars, so nothing changes there.) */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

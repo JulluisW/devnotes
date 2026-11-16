@@ -162,3 +162,68 @@ Short ones. **Predict, then check, and add a "because…".**
 2. **Lazy loading.** On `/posts`, make the window short so only one card fits, refresh, and watch the Img list. Scroll down slowly. When do the other thumbnails appear in the list? Because…?
 3. **Watch the animation** (I couldn't). On `/posts`, click a post title. Do you see the title move, or the post slide in? Click **Posts** in the header to go back. Which animation do you see this time?
 4. **Speed numbers.** Open a post with the Console open, switch to another tab and back. Write down LCP and CLS. Are they "good"? *Bonus:* DevTools → **Lighthouse** → Analyze page load. What's the Performance score?
+
+---
+
+## ✅ Homework review
+
+| # | Your answer | Result |
+|---|---|---|
+| 1a | `w=1920`, though DevTools shows the image 604 px wide | ✅ measured right. The reason is below |
+| 1b | narrow window → smaller `w` (`w=1200` on iPhone 16) | ✅ |
+| 2 | couldn't see the lazy loading, added `loading="eager"` | 🟡 not your fault: my question couldn't work with 4 posts. See below |
+| 3 | the title animates, and you **added a cover-image morph** yourself | ✅ nice. It's kept in `post-card.tsx` and the post page |
+| 4 | CLS **0.922 (poor)**, LCP 168 ms (good). "Maybe the image dimensions? DevTools blames `main`." | ✅ **You found a real bug I shipped.** The cause wasn't the images. See below. Now fixed |
+
+### #1: how the browser picks `w=`
+
+The browser does the math, not Next.js:
+
+```
+size it's shown at (from `sizes`)  ×  screen sharpness (pixel density)  =  pixels needed
+then: pick the smallest copy in the srcset list that is at least that big
+```
+
+| Screen | `sizes` says | Density | Needed | Smallest copy that's big enough |
+|---|---|---|---|---|
+| your Mac | 640px | 2× (Retina) | 1280 | **1920** (the list goes … 1080, 1200, **1920** …) |
+| iPhone 16 | 100vw = 393px | 3× | 1179 | **1200** |
+
+- **Why DevTools says 604 px:** `sizes` is an estimate ("about 640px"). The real column is 604 px wide. Close enough, and 604 × 2 = 1208 would still need the 1920 copy.
+- **The copies:** Next.js makes each copy the first time a browser asks for it, then keeps it. They aren't made "at a threshold".
+
+### #2: why you couldn't see lazy loading
+
+Chrome doesn't wait until a lazy image is **on** the screen. It starts loading it when it's **close**: within about 1250 px of the window, or more on slow connections, so the image is ready by the time you scroll to it. `/posts` has only 4 cards, so all 4 thumbnails are always "close", and Chrome loads them right away. I measured this on Day 11 too: all 4 loaded on the first page load. The browser cache made it even harder to see (DevTools → Network → **Disable cache** fixes that part).
+
+So lazy loading works, but you need a long page to see it. `loading="eager"` on the thumbnails would turn it off for real, so I removed it. **Keep `eager` / `fetchPriority="high"` for the one main picture only.**
+
+### #4: the CLS bug (0.922), and the fix
+
+Measured on your code: **CLS 0.846** at 1024×768. The layout-shift log showed what moved:
+
+| Element | Before | After |
+|---|---|---|
+| `main` + the header's container | x = 64 | x = **57** (7 px left) |
+| footer | visible at the bottom | pushed **off-screen** |
+
+**What happened, step by step:**
+1. The page first painted with the post's **skeleton** (3 short grey bars). The whole page fit in the window, so there was no scrollbar and the footer was visible.
+2. About 50 ms later, the post replaced the skeleton. The page became taller than the window, so a **scrollbar appeared**, and the window got 15 px narrower.
+3. Everything centered (`mx-auto`) moved 7 px left, and the footer jumped down. `main` covers almost the whole screen, so even 7 px gives a big score. That's why DevTools named `main` (it's the element that **moved**, not the cause).
+
+**Not the images:** they have `width`/`height`, so their box is reserved before they load. That's exactly what those two props are for.
+
+**Two fixes:**
+- `globals.css`: `html { scrollbar-gutter: stable; }` keeps the scrollbar's space reserved from the start, so the width never changes.
+- `skeletons.tsx`: `<PostSkeleton withCover />` is now about as tall as the real post (a 16:9 cover box + title + 5 lines). The page is long from the first paint, so the footer starts below the fold.
+
+**Measured after the fix:**
+
+| Page | Window | CLS before | CLS after |
+|---|---|---|---|
+| `/posts/why-server-components` | 1024×768 | 0.846 | **0.003** |
+| `/posts/file-based-routing` | 1024×768 | | **0** |
+| `/posts/why-server-components` | phone (375 wide) | | **0** |
+
+**The lesson:** a skeleton is a promise about the page's shape. If it's much shorter than the real content, everything below it jumps when the content arrives.

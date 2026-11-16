@@ -17,12 +17,26 @@ export function PostListSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
-export function PostSkeleton() {
+// 📘 Day 11 homework review (CLS): a skeleton must be about as TALL as the real
+// content. Measured with the old 3-line skeleton: the page first fit in the
+// window, then the post arrived and pushed the footer off-screen = CLS 0.846.
+// `withCover` adds the 16:9 box the post page's cover image will fill.
+export function PostSkeleton({ withCover = false }: { withCover?: boolean }) {
   return (
-    <div className="animate-pulse space-y-4" aria-hidden>
-      <div className={`h-4 w-48 ${bar}`} />
-      <div className={`h-8 w-3/4 ${bar}`} />
-      <div className={`h-24 ${bar}`} />
+    <div className="animate-pulse space-y-8" aria-hidden>
+      {withCover && <div className={`aspect-video w-full rounded-xl ${bar}`} />}
+      <div className="space-y-3">
+        <div className={`h-4 w-32 ${bar}`} />
+        <div className={`h-8 w-3/4 ${bar}`} />
+        <div className={`h-5 w-40 ${bar}`} />
+      </div>
+      <div className="space-y-3">
+        <div className={`h-4 ${bar}`} />
+        <div className={`h-4 ${bar}`} />
+        <div className={`h-4 w-5/6 ${bar}`} />
+        <div className={`h-4 ${bar}`} />
+        <div className={`h-4 w-2/3 ${bar}`} />
+      </div>
     </div>
   );
 }

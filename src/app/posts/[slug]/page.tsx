@@ -116,7 +116,7 @@ export default function PostPage({ params }: PageProps<'/posts/[slug]'>) {
     <Suspense
       fallback={
         <ViewTransition exit="slide-down" default="none">
-          <PostSkeleton />
+          <PostSkeleton withCover />
         </ViewTransition>
       }
     >
@@ -143,16 +143,20 @@ async function PostContent({ params }: Pick<PageProps<'/posts/[slug]'>, 'params'
             fetchPriority="high" download it before less important files
           `sizes` says how wide it's SHOWN (the main column, ~640 px on desktop,
           the full screen on phones), so the browser picks a small enough copy. */}
-      <Image
-        src={post.cover}
-        alt=""
-        width={1600}
-        height={900}
-        sizes="(min-width: 768px) 640px, 100vw"
-        loading="eager"
-        fetchPriority="high"
-        className="aspect-video w-full rounded-xl object-cover"
-      />
+      {/* 📘 Day 11 homework #3 (Luis): same name as the thumbnail in <PostCard>,
+          so the cover image moves from the card to here. */}
+      <ViewTransition name={`post-cover-${post.slug}`} share="morph" default="none">
+        <Image
+          src={post.cover}
+          alt=""
+          width={1600}
+          height={900}
+          sizes="(min-width: 768px) 640px, 100vw"
+          loading="eager"
+          fetchPriority="high"
+          className="aspect-video w-full rounded-xl object-cover"
+        />
+      </ViewTransition>
       <header>
         <p className="text-sm text-foreground/50">{formatDate(post.publishedAt)}</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">
