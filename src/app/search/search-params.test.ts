@@ -20,6 +20,7 @@ describe('parseSearchParams', () => {
     expect(parseSearchParams({ q: '  Routing ' }).q).toBe('routing');
     expect(parseSearchParams({ q: ['TypeScript', 'react'] }).q).toBe('typescript');
     expect(parseSearchParams({}).q).toBe('');
+    expect(parseSearchParams({ q: 'ROUTING', page: '3' })).toEqual({ q: 'routing', page: 3 });
   });
 
   it('cuts very long queries to 50 characters', () => {

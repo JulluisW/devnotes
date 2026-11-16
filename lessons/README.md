@@ -26,7 +26,7 @@
 | 9 | **Auth & Proxy**: `proxy.ts` (formerly middleware), cookies, sessions, Data Access Layer, protecting routes and actions | Login and an author dashboard | ✅ Done |
 | 10 | **Advanced routing**: route groups, parallel routes (`@slot`), intercepting routes (modals), `searchParams` search and pagination | Dashboard with slots, post-preview modal, search | ✅ Done |
 | 11 | **Performance**: `next/image`, `next/font`, `next/script`, lazy loading, prefetching, View Transitions, bundle analysis | Fast Core Web Vitals | ✅ Done |
-| 12 | **Production**: env vars, `instrumentation.ts`, testing (Vitest + Playwright), deployment, production checklist | Ship-ready app | 📝 Homework open |
+| 12 | **Production**: env vars, `instrumentation.ts`, testing (Vitest + Playwright), deployment, production checklist | Ship-ready app | ✅ Done |
 
 ## Running the app
 
