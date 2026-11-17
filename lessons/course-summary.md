@@ -123,6 +123,8 @@ Search (`?q=`), pagination (`?page=`), the modal (`/posts/x` opened from `/searc
 | **Answering only half a question** | Day 6 #4 (no "why"). Day 9 #4 (skipped "why hiding the button isn't enough"). Day 12 #4 (no "what would happen"). | Questions with two parts ("why… and what would happen?") need two sentences. |
 | **Small JavaScript details** | Day 7: `=> { db.query() }` with no `return`, so the `await` didn't wait. | `=> value` returns. `=> { value }` does **not**, it needs `return`. |
 
+Every mistake in these tables is explained in full, with a real-project example, in [homework-mistakes-review.md](./homework-mistakes-review.md).
+
 ### What to review first (in order)
 
 1. **Day 3 + Day 7: caching and tags.** This is the topic with the most mistakes, and the one every real Next.js app depends on.
